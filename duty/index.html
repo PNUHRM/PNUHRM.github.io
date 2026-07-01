@@ -105,6 +105,7 @@
     <div class="btnbar" style="margin-top:8px">
       <button class="primary" id="ghLoadBtn">☁️ GitHub에서 불러오기</button>
       <button class="primary" id="ghSaveBtn">☁️ GitHub에 저장</button>
+      <label style="display:flex;align-items:center;gap:5px;font-size:13px"><input type="checkbox" id="ghAutosave" checked> 편집 시 자동 저장</label>
       <span id="ghMsg"></span>
     </div>
     <details style="margin-top:12px">
@@ -337,6 +338,7 @@ function generate(){
   };
   savePeople();
   renderOutput(rec);   // renderOutput 내부에서 최종본/이월값 계산 후 저장
+  scheduleAutoSave();  // 토큰 있으면 자동 커밋
 }
 
 function warn(msg){ return `<div class="warnbox">⚠️ ${msg}</div>`; }
@@ -445,7 +447,7 @@ function renderOutput(rec){
   document.getElementById('schedTA').value = tsv;
   document.getElementById('copySched').onclick = () => copyText(tsv, 'copyMsg', 'schedTA');
   document.getElementById('prepNext').onclick = () => prepareNextMonth(rec, summary);
-  document.getElementById('clearOvr').onclick = () => { rec.overrides={}; renderOutput(rec); };
+  document.getElementById('clearOvr').onclick = () => { rec.overrides={}; renderOutput(rec); scheduleAutoSave(); };
 
   // 드롭다운 교체 핸들러
   out.querySelectorAll('.ovr').forEach(sel=>{
@@ -454,6 +456,7 @@ function renderOutput(rec){
       if(sel.value === '__auto__') delete rec.overrides[day];
       else rec.overrides[day] = sel.value;
       renderOutput(rec);   // 내부에서 저장됨
+      scheduleAutoSave();
     };
   });
 
@@ -569,11 +572,11 @@ async function ghLoad(silent){
     if(!silent) ghMsg('백업 형식이 아닙니다', true); return false;
   }catch(e){ if(!silent) ghMsg('불러오기 실패: '+e.message, true); return false; }
 }
-async function ghSave(){
+async function ghSave(silent){
   const token = getToken();
-  if(!token){ ghMsg('먼저 토큰을 입력하세요(🔑 저장용 토큰 설정)', true); return; }
+  if(!token){ if(!silent) ghMsg('먼저 토큰을 입력하세요(🔑 저장용 토큰 설정)', true); return; }
   if(document.getElementById('ghRemember').checked) localStorage.setItem(LS_TOKEN, token);
-  ghMsg('저장 중…');
+  ghMsg(silent?'자동 저장 중…':'저장 중…');
   try{
     let sha = null;
     try{ const cur = await ghFetchRemote(token); if(cur) sha = cur.sha; }catch(e){}
@@ -584,11 +587,21 @@ async function ghSave(){
       headers:{ Authorization:`Bearer ${token}`, 'Accept':'application/vnd.github+json', 'Content-Type':'application/json' },
       body: JSON.stringify(body) });
     if(!r.ok){ const t=await r.text(); throw new Error(r.status+' '+t.slice(0,140)); }
-    ghMsg('✓ GitHub에 저장됨');
+    ghMsg(silent?'✓ 자동 저장됨':'✓ GitHub에 저장됨');
   }catch(e){ ghMsg('저장 실패: '+e.message, true); }
 }
+// 편집 시 자동 저장(디바운스): 토큰이 있으면 버튼 없이 자동 커밋
+let _asTimer = null;
+function scheduleAutoSave(){
+  const cb = document.getElementById('ghAutosave');
+  if(!cb || !cb.checked || !getToken()) return;
+  clearTimeout(_asTimer);
+  ghMsg('자동 저장 대기…');
+  _asTimer = setTimeout(()=>ghSave(true), 2500);
+}
 document.getElementById('ghLoadBtn').onclick = () => ghLoad(false).then(ok=>{ if(ok) setTimeout(()=>location.reload(),600); });
-document.getElementById('ghSaveBtn').onclick = ghSave;
+document.getElementById('ghSaveBtn').onclick = () => ghSave(false);
+document.getElementById('ghAutosave').onchange = e => localStorage.setItem('duty_autosave', e.target.checked?'1':'0');
 
 (function init(){
   const {y,m}=nextMonth();
@@ -597,6 +610,8 @@ document.getElementById('ghSaveBtn').onclick = ghSave;
   document.getElementById('manual').value = localStorage.getItem(LS_MANUAL) || '신용범';
   const tok = localStorage.getItem(LS_TOKEN);
   if(tok){ document.getElementById('ghToken').value = tok; document.getElementById('ghRemember').checked = true; }
+  const asPref = localStorage.getItem('duty_autosave');
+  document.getElementById('ghAutosave').checked = (asPref === null ? true : asPref === '1');
   const saved=loadPeople();
   if(saved && saved.length){
     saved.forEach(p=>addPersonRow(p.name, p.unavail, p.cwd||0, p.cwe||0));
