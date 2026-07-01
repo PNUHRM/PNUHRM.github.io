@@ -26,7 +26,6 @@
 ```
 
 - **폴더에 여러 HTML** → 그 폴더가 "자료 목록" 카테고리로 표시
-- **폴더에 index.html 하나** → "앱" 카드 하나로 표시 (예: 당직 일정 생성기)
 - 카테고리 한글 이름은 `build-index.mjs`의 `LABELS`에서 지정
 
 © PNUH Rehabilitation Medicine
