@@ -6,6 +6,12 @@
 //  - 폴더 안에 index.html 만 있으면  → 단일 앱 카드 (폴더로 링크)
 //  - 폴더 안에 여러 .html 이 있으면    → 자료 목록 (각 파일 링크, 폴더 index.html 은 제외)
 //  - 루트의 .html(자기 자신 index.html 제외) → "일반" 섹션
+//
+// ── 순서 정하기 ─────────────────────────────────────────────
+//  ① 카테고리 순서 : 아래 ORDER 배열에 폴더명을 원하는 순서로 나열 (없는 건 뒤에 알파벳순)
+//  ② 자료 순서    : (a) 파일명 앞에 숫자 접두사   예) 01_기초.html, 02_심화.html   (제목엔 안 보임)
+//                  (b) 또는 HTML <head>에  <meta name="order" content="1">  추가 (URL 안 바뀜)
+//                  숫자가 작을수록 위. 지정 없으면 파일명순.
 import { readdirSync, readFileSync, writeFileSync, statSync, existsSync } from 'node:fs'
 import { join, relative, sep } from 'node:path'
 
@@ -18,6 +24,9 @@ const LABELS = {
   'duty': '당직 · 근무',
   'admin': '행정 자료',
 }
+
+// 카테고리 표시 순서(선택). 여기 없는 폴더는 뒤에 알파벳순으로 붙습니다.
+const ORDER = ['resident-edu', 'duty', 'admin']
 
 const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
 
@@ -32,16 +41,33 @@ function walkHtml(dir) {
   return out
 }
 
-function titleOf(file) {
-  const m = readFileSync(file, 'utf8').match(/<title>([^<]*)<\/title>/i)
-  return (m ? m[1] : '').trim() || file.split(sep).pop().replace(/\.html$/, '')
+// <title> 과 <meta name="order"> 를 함께 읽음
+function metaOf(file) {
+  const html = readFileSync(file, 'utf8')
+  const t = html.match(/<title>([^<]*)<\/title>/i)
+  const o = html.match(/<meta\s+name=["']order["']\s+content=["'](\d+)["']/i)
+  return {
+    title: (t ? t[1] : '').trim() || file.split(sep).pop().replace(/\.html$/, ''),
+    order: o ? Number(o[1]) : Infinity,
+  }
 }
 const rel = (f) => relative(ROOT, f).split(sep).join('/')
 
-// 최상위 폴더 목록
+// 파일 정렬: (order 메타 → 파일명) 순
+function sortFiles(files) {
+  return files
+    .map((f) => ({ f, ...metaOf(f) }))
+    .sort((a, b) => a.order - b.order || rel(a.f).localeCompare(rel(b.f), 'ko'))
+}
+
+// 최상위 폴더 → ORDER 순, 나머지는 알파벳순
 const topDirs = readdirSync(ROOT)
   .filter((n) => !SKIP.has(n) && !n.startsWith('.') && statSync(join(ROOT, n)).isDirectory())
-  .sort()
+  .sort((a, b) => {
+    const ia = ORDER.indexOf(a), ib = ORDER.indexOf(b)
+    if (ia !== -1 || ib !== -1) return (ia === -1 ? 1e9 : ia) - (ib === -1 ? 1e9 : ib)
+    return a.localeCompare(b, 'ko')
+  })
 
 const sections = []
 
@@ -54,11 +80,9 @@ for (const dir of topDirs) {
 
   let items
   if (hasIndex && others.length === 0) {
-    // 단일 앱
-    items = [{ href: dir + '/', title: titleOf(indexPath) }]
+    items = [{ href: dir + '/', title: metaOf(indexPath).title }]     // 단일 앱
   } else {
-    // 자료 목록 (폴더 index.html 은 제외)
-    items = others.map((f) => ({ href: rel(f), title: titleOf(f) }))
+    items = sortFiles(others).map((x) => ({ href: rel(x.f), title: x.title }))
   }
   sections.push({ title: LABELS[dir] || dir, items })
 }
@@ -66,9 +90,9 @@ for (const dir of topDirs) {
 // 루트 직속 html (index.html 제외)
 const rootHtml = readdirSync(ROOT)
   .filter((n) => n.endsWith('.html') && n !== 'index.html')
-  .sort()
+  .map((n) => join(ROOT, n))
 if (rootHtml.length) {
-  sections.push({ title: LABELS['일반'] || '일반', items: rootHtml.map((n) => ({ href: n, title: titleOf(join(ROOT, n)) })) })
+  sections.push({ title: '일반', items: sortFiles(rootHtml).map((x) => ({ href: rel(x.f), title: x.title })) })
 }
 
 const total = sections.reduce((a, s) => a + s.items.length, 0)
