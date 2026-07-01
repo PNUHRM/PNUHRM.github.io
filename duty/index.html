@@ -50,7 +50,7 @@
 </head>
 <body>
   <h1>📅 당직 일정 생성기</h1>
-  <div class="sub">자동 균형(평일·주말 분리 + 이월) 후, 원하는 날에 수동 인원을 끼워넣으면 원래 담당자가 빠지고 자동 재계산</div>
+  <div class="sub">자동 균형(평일·주말 분리 + 이월) 후, 원하는 날에 수동 인원(예: 신용범)을 끼워넣으면 원래 담당자가 빠지고 자동 재계산</div>
 
   <div class="card">
     <h2>1. 기간 · 공휴일 · 수동 인원</h2>
@@ -63,9 +63,10 @@
       </div>
       <div class="fld" style="flex:1; min-width:160px">
         <label>수동 배정 인원 (쉼표로 여러 명)</label>
-        <input type="text" id="manual" placeholder="예: 이재현">
+        <input type="text" id="manual" placeholder="예: 신용범">
       </div>
     </div>
+    <div style="margin-top:10px"><label style="display:flex;align-items:center;gap:6px;font-size:13px"><input type="checkbox" id="autoCarry" checked> 지난달 이월값 자동 적용 (저장된 직전 달에서 이어받음)</label></div>
     <div class="hint">신정·3.1절·어린이날·현충일·광복절·개천절·한글날·성탄절은 <b>자동</b> 인식. 음력/대체공휴일은 직접 추가하세요. · <b>수동 배정 인원</b>은 자동 배정에서 제외되고, 생성 후 일정표에서 원하는 날에 직접 넣습니다.</div>
   </div>
 
@@ -268,6 +269,21 @@ function generate(){
   const out = document.getElementById('output');
   out.innerHTML='';
   if(!year || !month || month<1 || month>12){ out.innerHTML=warn('연도/월을 올바르게 입력하세요.'); return; }
+  // ── 지난달 이월 자동 적용: 저장된 직전 달의 이월값을 시작 carry로 이어받음 ──
+  let carryInfo = '';
+  if(document.getElementById('autoCarry').checked){
+    const pk = prevKey(year, month);
+    const saved = getSaved();
+    if(saved[pk]){
+      const src = computeNextCarry(saved[pk]);
+      document.querySelectorAll('#peopleBody tr').forEach(tr=>{
+        const nm = tr.querySelector('.p-name').value.trim();
+        if(src[nm]){ tr.querySelector('.p-cwd').value = src[nm].wd; tr.querySelector('.p-cwe').value = src[nm].we; }
+      });
+      carryInfo = `지난달(${pk}) 이월값을 자동으로 이어받았습니다.`;
+    }
+  }
+
   const people = readPeople();
   if(people.length < 2){ out.innerHTML=warn('당직자를 2명 이상 입력하세요.'); return; }
 
@@ -314,13 +330,13 @@ function generate(){
   }
 
   const rec = {
-    year, month, schedule, warnings, autoHolidayList,
+    year, month, schedule, warnings, autoHolidayList, carryInfo,
     people: people.map(p=>({name:p.name, carryWd:p.carryWd, carryWe:p.carryWe})),
     manual: parseNames(document.getElementById('manual').value),
     overrides: {},   // day -> 이름 (수동 교체)
   };
-  saveMonth(rec); savePeople();
-  renderOutput(rec);
+  savePeople();
+  renderOutput(rec);   // renderOutput 내부에서 최종본/이월값 계산 후 저장
 }
 
 function warn(msg){ return `<div class="warnbox">⚠️ ${msg}</div>`; }
@@ -357,6 +373,16 @@ function computeEffective(rec){
   return { eff, summary, allNames, autoNames, manualNames };
 }
 
+// 직전 달 키 (연/월 -1)
+function prevKey(year, month){ let y=year, m=month-1; if(m<1){ m=12; y-=1; } return `${y}-${String(m).padStart(2,'0')}`; }
+// 저장된 레코드의 "다음 달 이월값" 산출 (자동 멤버만)
+function computeNextCarry(rec){
+  const { summary } = computeEffective(rec);
+  const map = {};
+  summary.forEach(s=>{ if(!s.manual) map[s.name] = { wd:s.nextWd, we:s.nextWe }; });
+  return map;
+}
+
 function renderOutput(rec){
   if(!rec.overrides) rec.overrides={};
   const {year, month, warnings, autoHolidayList} = rec;
@@ -366,6 +392,7 @@ function renderOutput(rec){
 
   const autoStr = (autoHolidayList||[]).map(d=>`${month}/${d}`).join(', ') || '없음';
   html += `<div class="okbox">자동 인식 공휴일: <b>${autoStr}</b> · 주말(토·일) 자동 처리. 음력/대체공휴일은 "추가 공휴일"에 넣으세요.<br>일정표의 <b>당직자 칸 드롭다운</b>에서 수동 인원(${manualNames.join(', ')||'없음'})을 넣으면 원래 담당자가 빠지고 자동 재계산됩니다.</div>`;
+  if(rec.carryInfo) html += `<div class="okbox" style="background:#eef4ff;border-color:#c7d7fe;color:#1e40af">↪️ ${rec.carryInfo}</div>`;
 
   if(warnings && warnings.length){
     html += `<div class="warnbox">⚠️ 확인 필요<ul style="margin:6px 0 0; padding-left:18px">${warnings.map(w=>`<li>${w}</li>`).join('')}</ul></div>`;
@@ -418,7 +445,7 @@ function renderOutput(rec){
   document.getElementById('schedTA').value = tsv;
   document.getElementById('copySched').onclick = () => copyText(tsv, 'copyMsg', 'schedTA');
   document.getElementById('prepNext').onclick = () => prepareNextMonth(rec, summary);
-  document.getElementById('clearOvr').onclick = () => { rec.overrides={}; saveMonth(rec); renderOutput(rec); };
+  document.getElementById('clearOvr').onclick = () => { rec.overrides={}; renderOutput(rec); };
 
   // 드롭다운 교체 핸들러
   out.querySelectorAll('.ovr').forEach(sel=>{
@@ -426,10 +453,15 @@ function renderOutput(rec){
       const day = +sel.dataset.day;
       if(sel.value === '__auto__') delete rec.overrides[day];
       else rec.overrides[day] = sel.value;
-      saveMonth(rec);
-      renderOutput(rec);
+      renderOutput(rec);   // 내부에서 저장됨
     };
   });
+
+  // 최종본(수동수정 반영)과 이월값을 레코드에 명시적으로 기록 후 저장
+  rec.finalSchedule = eff.map(r=>({ day:r.day, dow:r.dow, isHol:r.isHol, type:r.type, name:r.eff }));
+  rec.counts    = summary.map(s=>({ name:s.name, wd:s.wd, we:s.we, manual:s.manual }));
+  rec.nextCarry = summary.filter(s=>!s.manual).map(s=>({ name:s.name, wd:s.nextWd, we:s.nextWe }));
+  saveMonth(rec);
 }
 
 function copyText(text, msgId, taId){
@@ -562,7 +594,7 @@ document.getElementById('ghSaveBtn').onclick = ghSave;
   const {y,m}=nextMonth();
   document.getElementById('year').value=y;
   document.getElementById('month').value=m;
-  document.getElementById('manual').value = localStorage.getItem(LS_MANUAL) || '이재현';
+  document.getElementById('manual').value = localStorage.getItem(LS_MANUAL) || '신용범';
   const tok = localStorage.getItem(LS_TOKEN);
   if(tok){ document.getElementById('ghToken').value = tok; document.getElementById('ghRemember').checked = true; }
   const saved=loadPeople();
