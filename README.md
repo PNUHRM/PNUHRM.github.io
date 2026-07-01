@@ -1,14 +1,16 @@
 # PNUHRM 자료 포털 (통합 저장소)
 
 부산대학교병원 재활의학과의 **모든 자료를 한 곳에서** 관리하는 저장소입니다.
+
 공개 주소: **https://pnuhrm.github.io/**
 
 ## 교수님들께서 자료 올리시는 법
 
-1. **Add file → Upload files**
-2. 원하는 폴더 경로로 HTML 올리기 (예: 전공의교육자료에 새자료를 올리려면 `resident-edu/새자료.html`)
-   - 파일명 앞에 `폴더명/`을 붙이면 그 폴더(카테고리)로 들어갑니다
-3. **Commit changes** → 약 1분 뒤 사이트 자동 반영
+1. 원하는 폴더 경로로 HTML 올리기
+   - 전공의교육자료에 새자료를 올리려면 `resident-edu/새자료.html`
+   - 새로운 카테고리를 만들어서 올리시려면 파일명 앞에 `폴더명/`을 붙이면 그 폴더(카테고리)로 들어갑니다
+   
+2. **Add file → Upload files → Commit changes** → 약 1분 뒤 사이트 자동 반영
 
 > HTML의 `<title>...</title>` 이 목차에 표시되는 제목입니다.
 
@@ -20,7 +22,7 @@
 ├── build-index.mjs        ← 목차 생성 스크립트
 ├── resident-edu/          ← 전공의 교육자료  (파일 여러 개 = 자료 목록)
 │   └── *.html
-├── duty/                  ← 당직·근무      (index.html = 단일 앱)
+├── duty/                  ← 관리자용      (index.html = 단일 앱)
 │   └── index.html
 └── admin/ 등 …            ← 폴더를 만들면 자동으로 새 카테고리
 ```
