@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>당직 일정 생성기</title>
+<style>
+  :root { --bd:#d9dee5; --bg:#f6f8fa; --accent:#2563eb; --we:#fff4f4; --warn:#b91c1c; }
+  * { box-sizing: border-box; }
+  body { font-family: -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+         margin: 0; padding: 24px; background: var(--bg); color: #1a1f24; }
+  h1 { font-size: 22px; margin: 0 0 4px; }
+  .sub { color:#5b6671; font-size: 13px; margin-bottom: 20px; }
+  .card { background:#fff; border:1px solid var(--bd); border-radius:10px; padding:18px; margin-bottom:18px; }
+  .card h2 { font-size:15px; margin:0 0 12px; }
+  label { font-size: 13px; color:#3a444e; }
+  input[type=number], input[type=text] { padding:7px 9px; border:1px solid var(--bd); border-radius:6px; font-size:14px; }
+  table { border-collapse: collapse; width:100%; font-size:14px; }
+  th, td { border:1px solid var(--bd); padding:6px 8px; text-align:center; }
+  th { background:#eef1f4; font-weight:600; }
+  .people-table td, .people-table th { text-align:left; }
+  .people-table input[type=text]{ width:100%; }
+  .people-table .num{ width:70px; }
+  .row-period { display:flex; gap:14px; align-items:flex-end; flex-wrap:wrap; }
+  .fld { display:flex; flex-direction:column; gap:4px; }
+  button { cursor:pointer; border:1px solid var(--bd); background:#fff; padding:8px 14px; border-radius:6px; font-size:14px; }
+  button.primary { background:var(--accent); color:#fff; border-color:var(--accent); font-weight:600; }
+  button.ghost { color:var(--accent); }
+  button.del { color:var(--warn); border:none; background:transparent; font-size:18px; padding:2px 8px; }
+  .btnbar { display:flex; gap:10px; margin-top:14px; flex-wrap:wrap; align-items:center; }
+  .sat { background:#eef4ff; }
+  .we { background:var(--we); }
+  .empty { background:#fff1f1; color:var(--warn); font-weight:600; }
+  .ovr-on { background:#fffbe6; }
+  .ovr-sel { font-size:13px; padding:3px 4px; border:1px solid var(--bd); border-radius:5px; }
+  .struck { color:#9aa4ae; text-decoration:line-through; font-size:12px; margin-left:6px; }
+  .hint { font-size:12px; color:#6b7680; margin-top:6px; }
+  .warnbox { background:#fff4f4; border:1px solid #f3c0c0; color:var(--warn); padding:10px 12px; border-radius:8px; font-size:13px; margin-bottom:14px; }
+  .okbox { background:#f0fdf4; border:1px solid #bbf7d0; color:#15803d; padding:10px 12px; border-radius:8px; font-size:13px; margin-bottom:14px; }
+  .grid2 { display:grid; grid-template-columns: 1fr 1fr; gap:18px; }
+  @media (max-width:780px){ .grid2 { grid-template-columns:1fr; } }
+  .copied { color:#15803d; font-size:13px; margin-left:4px; }
+  code { background:#eef1f4; padding:1px 5px; border-radius:4px; }
+  textarea { width:100%; border:1px solid var(--bd); border-radius:6px; padding:8px; font-family:ui-monospace,Menlo,monospace; font-size:12px; }
+  .saved-item { display:flex; align-items:center; gap:8px; padding:6px 0; border-bottom:1px dashed var(--bd); font-size:14px; }
+  .saved-item .nm { flex:1; }
+  .tag { background:#eef1f4; border-radius:5px; padding:2px 7px; font-size:12px; color:#3a444e; }
+  .badge { font-size:11px; background:#e0e7ff; color:#3730a3; border-radius:4px; padding:1px 5px; margin-left:4px; }
+</style>
+</head>
+<body>
+  <h1>📅 당직 일정 생성기</h1>
+  <div class="sub">자동 균형(평일·주말 분리 + 이월) 후, 원하는 날에 수동 인원(예: 신용범)을 끼워넣으면 원래 담당자가 빠지고 자동 재계산</div>
+
+  <div class="card">
+    <h2>1. 기간 · 공휴일 · 수동 인원</h2>
+    <div class="row-period">
+      <div class="fld"><label>연도</label><input type="number" id="year" style="width:100px"></div>
+      <div class="fld"><label>월</label><input type="number" id="month" min="1" max="12" style="width:80px"></div>
+      <div class="fld" style="flex:1; min-width:200px">
+        <label>추가 공휴일 (일) — 설·추석·석가탄신일·대체 등</label>
+        <input type="text" id="addHoliday" placeholder="예: 16-18, 25">
+      </div>
+      <div class="fld" style="flex:1; min-width:160px">
+        <label>수동 배정 인원 (쉼표로 여러 명)</label>
+        <input type="text" id="manual" placeholder="예: 신용범">
+      </div>
+    </div>
+    <div class="hint">신정·3.1절·어린이날·현충일·광복절·개천절·한글날·성탄절은 <b>자동</b> 인식. 음력/대체공휴일은 직접 추가하세요. · <b>수동 배정 인원</b>은 자동 배정에서 제외되고, 생성 후 일정표에서 원하는 날에 직접 넣습니다.</div>
+  </div>
+
+  <div class="card">
+    <h2>2. 당직자 (자동 배정)</h2>
+    <table class="people-table">
+      <thead>
+        <tr><th>이름</th><th>불가일 (예: <code>3, 5, 10-12</code>)</th><th>평일이월</th><th>주말이월</th><th></th></tr>
+      </thead>
+      <tbody id="peopleBody"></tbody>
+    </table>
+    <div class="btnbar"><button class="ghost" id="addPerson">+ 당직자 추가</button></div>
+    <div class="hint">이월값은 보통 0으로 두고, 생성 후 "다음 달 준비"가 자동으로 채웁니다.</div>
+
+    <details style="margin-top:14px; border-top:1px solid var(--bd); padding-top:12px">
+      <summary style="cursor:pointer; font-size:14px; font-weight:600; color:var(--accent)">📥 구글 시트에서 불러오기 (선택)</summary>
+      <div style="margin-top:10px">
+        <div class="hint" style="margin-bottom:8px">컬럼 순서: <code>이름 ⟶ 불가일 ⟶ 평일이월 ⟶ 주말이월</code> (이월값 생략 가능). 위 명단을 <b>덮어씁니다.</b></div>
+        <textarea rows="4" id="importTA" placeholder="홍길동	3, 5, 12	0	0
+김철수	10-12	1	0"></textarea>
+        <div class="btnbar"><button id="importPaste">붙여넣기로 채우기</button><span id="importMsg"></span></div>
+      </div>
+    </details>
+  </div>
+
+  <div class="btnbar">
+    <button class="primary" id="generate">일정 생성</button>
+    <button id="resetCarry">이월값 모두 0</button>
+  </div>
+
+  <div id="output"></div>
+
+  <div class="card">
+    <h2>☁️ GitHub 저장 / 불러오기 (기기 간 자동 공유)</h2>
+    <div class="hint"><b>불러오기는 토큰 없이</b> 어느 기기에서나 됩니다(공개 저장소). <b>저장할 때만</b> 아래에 토큰이 필요합니다. 저장한 데이터는 <b>공개</b>로 보관됩니다(이름·날짜).</div>
+    <div class="btnbar" style="margin-top:8px">
+      <button class="primary" id="ghLoadBtn">☁️ GitHub에서 불러오기</button>
+      <button class="primary" id="ghSaveBtn">☁️ GitHub에 저장</button>
+      <span id="ghMsg"></span>
+    </div>
+    <details style="margin-top:12px">
+      <summary style="cursor:pointer; font-size:14px; font-weight:600; color:var(--accent)">🔑 저장용 토큰 설정 (처음 한 번)</summary>
+      <div style="margin-top:8px">
+        <div class="btnbar" style="margin-top:0">
+          <input type="password" id="ghToken" placeholder="github_pat_... (Contents 쓰기 전용)" style="flex:1; min-width:280px">
+          <label style="display:flex; align-items:center; gap:5px"><input type="checkbox" id="ghRemember"> 이 기기에 저장</label>
+        </div>
+        <div class="hint">GitHub → Settings → Developer settings → <b>Fine-grained tokens</b> → Generate → 저장소 <code>PNUHRM/PNUHRM.github.io</code> 선택 → 권한 <b>Contents: Read and write</b> → 생성한 토큰을 붙여넣기. (넓은 권한의 기존 토큰은 쓰지 마세요.)</div>
+      </div>
+    </details>
+    <details style="margin-top:10px">
+      <summary style="cursor:pointer; font-size:13px">파일로 백업/복원 (오프라인용)</summary>
+      <div class="btnbar">
+        <button id="exportBtn">⬇️ 파일 내보내기</button>
+        <button id="importFileBtn">⬆️ 파일 가져오기</button>
+        <input type="file" id="importFile" accept="application/json,.json" style="display:none">
+        <span id="backupMsg"></span>
+      </div>
+    </details>
+  </div>
+
+  <div class="card" id="savedCard" style="display:none">
+    <h2>💾 저장된 일정</h2>
+    <div id="savedList"></div>
+  </div>
+
+<script>
+const KO_DOW = ["일","월","화","수","목","금","토"];
+const LS_PEOPLE = 'duty_people_v3';
+const LS_MANUAL = 'duty_manual_v3';
+const LS_SAVED  = 'duty_saved_v3';
+
+function fixedHolidays(month){
+  const map = {1:[1], 3:[1], 5:[5], 6:[6], 8:[15], 10:[3,9], 12:[25]};
+  return new Set(map[month] || []);
+}
+
+function nextMonth(){
+  const d = new Date();
+  let y = d.getFullYear(), m = d.getMonth()+2;
+  if (m > 12){ m -= 12; y += 1; }
+  return {y, m};
+}
+
+function addPersonRow(name="", unavail="", carryWd=0, carryWe=0){
+  const tb = document.getElementById('peopleBody');
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td><input type="text" class="p-name" value="${escAttr(name)}" placeholder="이름"></td>
+    <td><input type="text" class="p-unavail" value="${escAttr(unavail)}" placeholder="예: 3, 5, 10-12"></td>
+    <td><input type="number" class="p-cwd num" value="${carryWd}" step="1"></td>
+    <td><input type="number" class="p-cwe num" value="${carryWe}" step="1"></td>
+    <td><button class="del" title="삭제">✕</button></td>`;
+  tr.querySelector('.del').onclick = () => { tr.remove(); savePeople(); };
+  tr.querySelectorAll('input').forEach(i => i.addEventListener('change', savePeople));
+  tb.appendChild(tr);
+}
+function escAttr(s){ return String(s).replace(/"/g,'&quot;'); }
+
+function parseDays(str, daysInMonth){
+  const set = new Set(); const bad = [];
+  if(!str) return {set, bad};
+  for(let part of str.split(',')){
+    part = part.trim(); if(!part) continue;
+    const m = part.match(/^(\d+)\s*-\s*(\d+)$/);
+    if(m){
+      let a = +m[1], b = +m[2]; if(a>b)[a,b]=[b,a];
+      for(let d=a; d<=b; d++){ (d>=1&&d<=daysInMonth)?set.add(d):bad.push(d); }
+    } else if(/^\d+$/.test(part)){
+      const d = +part; (d>=1&&d<=daysInMonth)?set.add(d):bad.push(d);
+    } else { bad.push(part); }
+  }
+  return {set, bad};
+}
+function parseNames(str){
+  return (str||'').split(',').map(s=>s.trim()).filter(Boolean);
+}
+
+function readPeople(){
+  return [...document.querySelectorAll('#peopleBody tr')].map(r => ({
+    name: r.querySelector('.p-name').value.trim(),
+    unavailRaw: r.querySelector('.p-unavail').value,
+    carryWd: parseInt(r.querySelector('.p-cwd').value || '0',10) || 0,
+    carryWe: parseInt(r.querySelector('.p-cwe').value || '0',10) || 0,
+  })).filter(p => p.name);
+}
+
+// ---- localStorage ----
+function savePeople(){
+  const data = [...document.querySelectorAll('#peopleBody tr')].map(r => ({
+    name: r.querySelector('.p-name').value,
+    unavail: r.querySelector('.p-unavail').value,
+    cwd: r.querySelector('.p-cwd').value,
+    cwe: r.querySelector('.p-cwe').value,
+  }));
+  localStorage.setItem(LS_PEOPLE, JSON.stringify(data));
+  localStorage.setItem(LS_MANUAL, document.getElementById('manual').value);
+}
+function loadPeople(){ try{ return JSON.parse(localStorage.getItem(LS_PEOPLE)) || null; }catch(e){ return null; } }
+
+function getSaved(){ try{ return JSON.parse(localStorage.getItem(LS_SAVED)) || {}; }catch(e){ return {}; } }
+function saveMonth(rec){
+  const all = getSaved();
+  all[`${rec.year}-${String(rec.month).padStart(2,'0')}`] = rec;
+  localStorage.setItem(LS_SAVED, JSON.stringify(all));
+  renderSavedList();
+}
+function renderSavedList(){
+  const all = getSaved();
+  const keys = Object.keys(all).sort().reverse();
+  const card = document.getElementById('savedCard');
+  const list = document.getElementById('savedList');
+  if(keys.length === 0){ card.style.display='none'; return; }
+  card.style.display='';
+  list.innerHTML = keys.map(k => {
+    const r = all[k];
+    return `<div class="saved-item"><span class="nm">${r.year}년 ${r.month}월</span>
+      <span class="tag">${r.schedule.filter(s=>s.name).length}건</span>
+      <button onclick="viewMonth('${k}')">보기</button>
+      <button class="del" onclick="deleteMonth('${k}')" title="삭제">✕</button></div>`;
+  }).join('');
+}
+function deleteMonth(k){ const all=getSaved(); delete all[k]; localStorage.setItem(LS_SAVED, JSON.stringify(all)); renderSavedList(); }
+function viewMonth(k){ const r=getSaved()[k]; if(!r) return; if(!r.overrides) r.overrides={}; renderOutput(r);
+  window.scrollTo({top:document.getElementById('output').offsetTop-20, behavior:'smooth'}); }
+
+// ---- 가져오기 ----
+function parseCSVLine(line){
+  const out=[]; let cur=''; let q=false;
+  for(let i=0;i<line.length;i++){ const ch=line[i];
+    if(q){ if(ch==='"'){ if(line[i+1]==='"'){cur+='"';i++;} else q=false; } else cur+=ch; }
+    else { if(ch===','){out.push(cur);cur='';} else if(ch==='"')q=true; else cur+=ch; } }
+  out.push(cur); return out;
+}
+function parseImport(text){
+  text=(text||'').trim(); if(!text) return [];
+  const hasTab=text.includes('\t'); const rows=[];
+  for(const line of text.split(/\r?\n/)){
+    if(!line.trim()) continue;
+    let c=(hasTab?line.split('\t'):parseCSVLine(line)).map(x=>x.trim());
+    if(/^(이름|name)$/i.test(c[0])) continue;
+    if(!c[0]) continue;
+    rows.push({ name:c[0], unavail:c[1]||'', cwd:parseInt(c[2]||'0',10)||0, cwe:parseInt(c[3]||'0',10)||0 });
+  }
+  return rows;
+}
+function applyImport(rows){
+  const msg=document.getElementById('importMsg');
+  if(!rows.length){ msg.innerHTML='<span class="copied" style="color:#b91c1c">읽을 데이터가 없습니다</span>'; return; }
+  document.getElementById('peopleBody').innerHTML='';
+  rows.forEach(r=>addPersonRow(r.name, r.unavail, r.cwd, r.cwe));
+  savePeople();
+  msg.innerHTML=`<span class="copied">✓ ${rows.length}명 불러옴</span>`;
+}
+
+// ---- 자동 일정 생성 (4명 균형) ----
+function generate(){
+  const year = parseInt(document.getElementById('year').value,10);
+  const month = parseInt(document.getElementById('month').value,10);
+  const out = document.getElementById('output');
+  out.innerHTML='';
+  if(!year || !month || month<1 || month>12){ out.innerHTML=warn('연도/월을 올바르게 입력하세요.'); return; }
+  const people = readPeople();
+  if(people.length < 2){ out.innerHTML=warn('당직자를 2명 이상 입력하세요.'); return; }
+
+  const daysInMonth = new Date(year, month, 0).getDate();
+  const holiday = fixedHolidays(month);
+  const autoHolidayList = [...holiday];
+  const {set:addH, bad:badH} = parseDays(document.getElementById('addHoliday').value, daysInMonth);
+  addH.forEach(d=>holiday.add(d));
+
+  const warnings = [];
+  if(badH.length) warnings.push(`추가 공휴일 무시된 입력 → ${badH.join(', ')}`);
+
+  const state = people.map((p,i)=>{
+    const {set, bad} = parseDays(p.unavailRaw, daysInMonth);
+    if(bad.length) warnings.push(`${p.name}: 무시된 불가일 → ${bad.join(', ')}`);
+    return { name:p.name, idx:i, unavail:set, carryWd:p.carryWd, carryWe:p.carryWe, wd:0, we:0, last:-99 };
+  });
+
+  const schedule = [];
+  let prev = -1;
+  for(let day=1; day<=daysInMonth; day++){
+    const dow = new Date(year, month-1, day).getDay();
+    const isHol = holiday.has(day);
+    const type = (dow===0 || dow===6 || isHol) ? 'we' : 'wd';
+    let pool = state.filter(s => !s.unavail.has(day));
+    let chosen = null;
+    if(pool.length === 0){
+      warnings.push(`${month}월 ${day}일(${KO_DOW[dow]}${isHol?'·공휴일':''}): 가능한 당직자가 없어 공석.`);
+    } else {
+      if(pool.length > 1 && prev !== -1){
+        const f = pool.filter(s => s.idx !== prev);
+        if(f.length) pool = f;
+      }
+      pool.sort((a,b)=>{
+        const ca = type==='we' ? (a.carryWe+a.we) : (a.carryWd+a.wd);
+        const cb = type==='we' ? (b.carryWe+b.we) : (b.carryWd+b.wd);
+        return ca - cb || a.last - b.last || a.idx - b.idx;
+      });
+      chosen = pool[0];
+      if(type==='we') chosen.we++; else chosen.wd++;
+      chosen.last = day; prev = chosen.idx;
+    }
+    schedule.push({day, dow, isHol, type, name: chosen?chosen.name:null});
+  }
+
+  const rec = {
+    year, month, schedule, warnings, autoHolidayList,
+    people: people.map(p=>({name:p.name, carryWd:p.carryWd, carryWe:p.carryWe})),
+    manual: parseNames(document.getElementById('manual').value),
+    overrides: {},   // day -> 이름 (수동 교체)
+  };
+  saveMonth(rec); savePeople();
+  renderOutput(rec);
+}
+
+function warn(msg){ return `<div class="warnbox">⚠️ ${msg}</div>`; }
+
+// ---- 유효 일정/집계 계산 (자동 + 수동교체 반영) ----
+function computeEffective(rec){
+  const autoNames = rec.people.map(p=>p.name);
+  const manualNames = (rec.manual||[]).filter(n=>!autoNames.includes(n));
+  const allNames = [...autoNames, ...manualNames];
+
+  const eff = rec.schedule.map(r=>{
+    const ov = rec.overrides ? rec.overrides[r.day] : null;
+    return { ...r, base:r.name, eff: (ov!=null ? ov : r.name) };
+  });
+
+  const cnt = {}; allNames.forEach(n=>cnt[n]={wd:0,we:0});
+  eff.forEach(r=>{ if(r.eff && cnt[r.eff]){ if(r.type==='we') cnt[r.eff].we++; else cnt[r.eff].wd++; } });
+
+  // 이월: 자동 멤버만 정규화
+  const carryMap = {}; rec.people.forEach(p=>carryMap[p.name]={cwd:p.carryWd, cwe:p.carryWe});
+  const finalsWd = autoNames.map(n=>carryMap[n].cwd + cnt[n].wd);
+  const finalsWe = autoNames.map(n=>carryMap[n].cwe + cnt[n].we);
+  const minWd = finalsWd.length ? Math.min(...finalsWd) : 0;
+  const minWe = finalsWe.length ? Math.min(...finalsWe) : 0;
+
+  const summary = allNames.map((n,i)=>{
+    const isAuto = i < autoNames.length;
+    return {
+      name:n, manual:!isAuto, wd:cnt[n].wd, we:cnt[n].we,
+      nextWd: isAuto ? (carryMap[n].cwd + cnt[n].wd) - minWd : null,
+      nextWe: isAuto ? (carryMap[n].cwe + cnt[n].we) - minWe : null,
+    };
+  });
+  return { eff, summary, allNames, autoNames, manualNames };
+}
+
+function renderOutput(rec){
+  if(!rec.overrides) rec.overrides={};
+  const {year, month, warnings, autoHolidayList} = rec;
+  const { eff, summary, allNames, manualNames } = computeEffective(rec);
+  const out = document.getElementById('output');
+  let html='';
+
+  const autoStr = (autoHolidayList||[]).map(d=>`${month}/${d}`).join(', ') || '없음';
+  html += `<div class="okbox">자동 인식 공휴일: <b>${autoStr}</b> · 주말(토·일) 자동 처리. 음력/대체공휴일은 "추가 공휴일"에 넣으세요.<br>일정표의 <b>당직자 칸 드롭다운</b>에서 수동 인원(${manualNames.join(', ')||'없음'})을 넣으면 원래 담당자가 빠지고 자동 재계산됩니다.</div>`;
+
+  if(warnings && warnings.length){
+    html += `<div class="warnbox">⚠️ 확인 필요<ul style="margin:6px 0 0; padding-left:18px">${warnings.map(w=>`<li>${w}</li>`).join('')}</ul></div>`;
+  }
+
+  // 일정표 (드롭다운 편집)
+  html += `<div class="card"><h2>${year}년 ${month}월 당직 일정</h2>`;
+  html += `<table><thead><tr><th>날짜</th><th>요일</th><th>구분</th><th>당직자 (드롭다운으로 교체)</th></tr></thead><tbody>`;
+  for(const r of eff){
+    const rowcls = r.type==='we' ? 'we' : (r.dow===6?'sat':'');
+    const gubun = r.type==='we' ? (r.isHol?'공휴일':'주말') : '평일';
+    const overridden = (r.eff !== r.base);
+    const opts = ['<option value="__auto__">'+ (r.base||'공석') +' (자동)</option>']
+      .concat(allNames.map(n=>`<option value="${escAttr(n)}" ${overridden && r.eff===n ? 'selected':''}>${n}</option>`))
+      .join('');
+    const struck = overridden && r.base ? `<span class="struck">${r.base}</span>` : '';
+    html += `<tr class="${rowcls} ${overridden?'ovr-on':''}"><td>${month}/${r.day}</td><td>${KO_DOW[r.dow]}</td><td>${gubun}</td>
+      <td style="text-align:left"><select class="ovr-sel ovr" data-day="${r.day}">${opts}</select>${struck}</td></tr>`;
+  }
+  html += `</tbody></table>`;
+  html += `<div class="btnbar">
+      <button class="primary" id="copySched">📋 시트용으로 복사 (TSV)</button>
+      <button class="primary" id="prepNext">다음 달 준비 →</button>
+      <button id="clearOvr">수동 교체 초기화</button>
+      <span id="copyMsg"></span></div>`;
+  html += `<details style="margin-top:10px"><summary style="cursor:pointer;font-size:13px">복사가 안 되면 여기서 직접 선택해 복사</summary>
+      <textarea rows="6" id="schedTA" readonly style="margin-top:8px"></textarea></details></div>`;
+
+  // 요약
+  html += `<div class="grid2">`;
+  html += `<div class="card"><h2>이번 달 배정 횟수</h2><table><thead><tr><th>당직자</th><th>평일</th><th>주말·공휴</th><th>합계</th></tr></thead><tbody>`;
+  for(const s of summary){
+    const tag = s.manual ? '<span class="badge">수동</span>' : '';
+    html += `<tr><td style="text-align:left">${s.name}${tag}</td><td>${s.wd}</td><td>${s.we}</td><td><b>${s.wd+s.we}</b></td></tr>`;
+  }
+  html += `</tbody></table></div>`;
+
+  // 이월
+  html += `<div class="card"><h2>다음 달 이월값</h2><table><thead><tr><th>당직자</th><th>평일이월</th><th>주말이월</th></tr></thead><tbody>`;
+  for(const s of summary){
+    html += `<tr><td style="text-align:left">${s.name}</td><td>${s.nextWd===null?'-':s.nextWd}</td><td>${s.nextWe===null?'-':s.nextWe}</td></tr>`;
+  }
+  html += `</tbody></table><div class="hint">수동 인원은 이월 대상이 아닙니다(-). 교체로 줄어든 자동 멤버는 다음 달에 자동 보정됩니다.</div></div>`;
+  html += `</div>`;
+
+  out.innerHTML = html;
+
+  const tsv = ['날짜\t요일\t구분\t당직자',
+    ...eff.map(r=>`${month}/${r.day}\t${KO_DOW[r.dow]}\t${r.type==='we'?(r.isHol?'공휴일':'주말'):'평일'}\t${r.eff||''}`)].join('\n');
+  document.getElementById('schedTA').value = tsv;
+  document.getElementById('copySched').onclick = () => copyText(tsv, 'copyMsg', 'schedTA');
+  document.getElementById('prepNext').onclick = () => prepareNextMonth(rec, summary);
+  document.getElementById('clearOvr').onclick = () => { rec.overrides={}; saveMonth(rec); renderOutput(rec); };
+
+  // 드롭다운 교체 핸들러
+  out.querySelectorAll('.ovr').forEach(sel=>{
+    sel.onchange = () => {
+      const day = +sel.dataset.day;
+      if(sel.value === '__auto__') delete rec.overrides[day];
+      else rec.overrides[day] = sel.value;
+      saveMonth(rec);
+      renderOutput(rec);
+    };
+  });
+}
+
+function copyText(text, msgId, taId){
+  const ok = () => { document.getElementById(msgId).innerHTML = '<span class="copied">✓ 복사됨</span>'; };
+  const fail = () => { const ta=document.getElementById(taId); ta.focus(); ta.select();
+    try{ document.execCommand('copy'); ok(); }
+    catch(e){ document.getElementById(msgId).innerHTML='<span class="copied" style="color:#b91c1c">아래 칸에서 직접 복사하세요</span>'; } };
+  if(navigator.clipboard && window.isSecureContext){ navigator.clipboard.writeText(text).then(ok).catch(fail); }
+  else { fail(); }
+}
+
+function prepareNextMonth(rec, summary){
+  const wdByName={}, weByName={};
+  summary.forEach(s=>{ if(!s.manual){ wdByName[s.name]=s.nextWd; weByName[s.name]=s.nextWe; } });
+  document.querySelectorAll('#peopleBody tr').forEach(tr=>{
+    const name=tr.querySelector('.p-name').value.trim();
+    tr.querySelector('.p-unavail').value='';
+    if(name in wdByName) tr.querySelector('.p-cwd').value=wdByName[name];
+    if(name in weByName) tr.querySelector('.p-cwe').value=weByName[name];
+  });
+  document.getElementById('addHoliday').value='';
+  let y=parseInt(document.getElementById('year').value,10);
+  let m=parseInt(document.getElementById('month').value,10)+1;
+  if(m>12){ m=1; y+=1; }
+  document.getElementById('year').value=y; document.getElementById('month').value=m;
+  savePeople();
+  document.getElementById('output').innerHTML =
+    `<div class="okbox">✓ ${y}년 ${m}월 준비 완료 — 이월값 입력·불가일/추가공휴일 초기화됨. 새 값 입력 후 <b>일정 생성</b>을 누르세요.</div>`;
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+// 초기화
+document.getElementById('addPerson').onclick = () => addPersonRow();
+document.getElementById('generate').onclick = generate;
+document.getElementById('resetCarry').onclick = () => {
+  document.querySelectorAll('.p-cwd,.p-cwe').forEach(i=>i.value=0); savePeople(); };
+document.getElementById('year').addEventListener('change', savePeople);
+document.getElementById('month').addEventListener('change', savePeople);
+document.getElementById('addHoliday').addEventListener('change', savePeople);
+document.getElementById('manual').addEventListener('change', savePeople);
+document.getElementById('importPaste').onclick = () => applyImport(parseImport(document.getElementById('importTA').value));
+
+// ---- 백업 데이터 묶기/풀기 ----
+function backupData(){ return { _type:'duty-backup', v:3,
+  people: localStorage.getItem(LS_PEOPLE),
+  manual: localStorage.getItem(LS_MANUAL),
+  saved: localStorage.getItem(LS_SAVED) }; }
+function applyBackupObject(d){
+  if(!d || d._type!=='duty-backup') return false;
+  if(d.people != null) localStorage.setItem(LS_PEOPLE, d.people);
+  if(d.manual != null) localStorage.setItem(LS_MANUAL, d.manual);
+  if(d.saved != null){
+    const cur = getSaved();
+    const inc = JSON.parse(d.saved || '{}');
+    localStorage.setItem(LS_SAVED, JSON.stringify({ ...cur, ...inc }));  // 병합(같은 달은 덮어씀)
+  }
+  return true;
+}
+
+// ---- 파일 백업/복원 ----
+function exportBackup(){
+  const blob = new Blob([JSON.stringify(backupData(),null,2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href=url; a.download='duty-backup.json'; a.click();
+  URL.revokeObjectURL(url);
+  document.getElementById('backupMsg').innerHTML = '<span class="copied">✓ 내보냄</span>';
+}
+function importBackup(file){
+  const reader = new FileReader();
+  reader.onload = () => {
+    try{ applyBackupObject(JSON.parse(reader.result));
+      document.getElementById('backupMsg').innerHTML='<span class="copied">✓ 복원됨 — 새로고침…</span>';
+      setTimeout(()=>location.reload(), 700);
+    }catch(e){ document.getElementById('backupMsg').innerHTML='<span class="copied" style="color:#b91c1c">파일 오류</span>'; }
+  };
+  reader.readAsText(file);
+}
+document.getElementById('exportBtn').onclick = exportBackup;
+document.getElementById('importFileBtn').onclick = () => document.getElementById('importFile').click();
+document.getElementById('importFile').onchange = (e) => { if(e.target.files[0]) importBackup(e.target.files[0]); };
+
+// ---- GitHub 저장/불러오기 ----
+const GH_OWNER='PNUHRM', GH_REPO='PNUHRM.github.io', GH_PATH='duty/data/backup.json';
+const GH_API=`https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${GH_PATH}`;
+const LS_TOKEN='duty_gh_token';
+function ghMsg(t, err){ const e=document.getElementById('ghMsg'); if(e) e.innerHTML=`<span class="copied"${err?' style="color:#b91c1c"':''}>${t}</span>`; }
+function getToken(){ return (document.getElementById('ghToken').value.trim()) || localStorage.getItem(LS_TOKEN) || ''; }
+
+async function ghFetchRemote(token){   // 반환: {sha, data} 또는 null(404)
+  const headers = { 'Accept':'application/vnd.github+json' };
+  if(token) headers.Authorization = `Bearer ${token}`;
+  const r = await fetch(GH_API + '?t=' + Date.now(), { headers, cache:'no-store' });
+  if(r.status === 404) return null;
+  if(!r.ok) throw new Error('GET ' + r.status);
+  const j = await r.json();
+  const json = decodeURIComponent(escape(atob((j.content||'').replace(/\n/g,''))));
+  return { sha:j.sha, data: JSON.parse(json) };
+}
+async function ghLoad(silent){
+  try{
+    const res = await ghFetchRemote(getToken());
+    if(!res){ if(!silent) ghMsg('저장된 백업이 아직 없습니다', true); return false; }
+    const ok = applyBackupObject(res.data);
+    if(ok){ if(!silent) ghMsg('✓ 불러옴 — 새로고침…'); return true; }
+    if(!silent) ghMsg('백업 형식이 아닙니다', true); return false;
+  }catch(e){ if(!silent) ghMsg('불러오기 실패: '+e.message, true); return false; }
+}
+async function ghSave(){
+  const token = getToken();
+  if(!token){ ghMsg('먼저 토큰을 입력하세요(🔑 저장용 토큰 설정)', true); return; }
+  if(document.getElementById('ghRemember').checked) localStorage.setItem(LS_TOKEN, token);
+  ghMsg('저장 중…');
+  try{
+    let sha = null;
+    try{ const cur = await ghFetchRemote(token); if(cur) sha = cur.sha; }catch(e){}
+    const content = btoa(unescape(encodeURIComponent(JSON.stringify(backupData()))));
+    const body = { message:'duty backup '+new Date().toISOString(), content };
+    if(sha) body.sha = sha;
+    const r = await fetch(GH_API, { method:'PUT',
+      headers:{ Authorization:`Bearer ${token}`, 'Accept':'application/vnd.github+json', 'Content-Type':'application/json' },
+      body: JSON.stringify(body) });
+    if(!r.ok){ const t=await r.text(); throw new Error(r.status+' '+t.slice(0,140)); }
+    ghMsg('✓ GitHub에 저장됨');
+  }catch(e){ ghMsg('저장 실패: '+e.message, true); }
+}
+document.getElementById('ghLoadBtn').onclick = () => ghLoad(false).then(ok=>{ if(ok) setTimeout(()=>location.reload(),600); });
+document.getElementById('ghSaveBtn').onclick = ghSave;
+
+(function init(){
+  const {y,m}=nextMonth();
+  document.getElementById('year').value=y;
+  document.getElementById('month').value=m;
+  document.getElementById('manual').value = localStorage.getItem(LS_MANUAL) || '신용범';
+  const tok = localStorage.getItem(LS_TOKEN);
+  if(tok){ document.getElementById('ghToken').value = tok; document.getElementById('ghRemember').checked = true; }
+  const saved=loadPeople();
+  if(saved && saved.length){
+    saved.forEach(p=>addPersonRow(p.name, p.unavail, p.cwd||0, p.cwe||0));
+  } else {
+    for(let i=0;i<4;i++) addPersonRow();
+  }
+  renderSavedList();
+
+  // 이 기기에 저장된 일정이 없으면 GitHub에서 자동으로 한 번 불러오기
+  const noLocal = Object.keys(getSaved()).length === 0;
+  if(noLocal && !sessionStorage.getItem('gh_autotried')){
+    sessionStorage.setItem('gh_autotried','1');
+    ghMsg('GitHub에서 불러오는 중…');
+    ghLoad(true).then(applied => { if(applied){ ghMsg('✓ 자동 불러옴'); setTimeout(()=>location.reload(), 500); } else ghMsg(''); });
+  }
+})();
+</script>
+</body>
+</html>
