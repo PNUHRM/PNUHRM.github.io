@@ -6,7 +6,7 @@
 ## 자료 올리는 법
 
 1. 저장소에서 **Add file → Upload files**
-2. 원하는 폴더 경로로 HTML 올리기 (예: `resident-edu/새자료.html`)
+2. 원하는 폴더 경로로 HTML 올리기 (예: 전공의교육자료에 새자료를 올리려면 `resident-edu/새자료.html`)
    - 파일명 앞에 `폴더명/`을 붙이면 그 폴더(카테고리)로 들어갑니다
 3. **Commit changes** → 약 1분 뒤 사이트 자동 반영
 
