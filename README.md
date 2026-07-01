@@ -3,7 +3,7 @@
 부산대학교병원 재활의학과의 **모든 자료를 한 곳에서** 관리하는 저장소입니다.
 공개 주소: **https://pnuhrm.github.io/**
 
-## 자료 올리는 법 (git 몰라도 됨)
+## 자료 올리는 법
 
 1. 저장소에서 **Add file → Upload files**
 2. 원하는 폴더 경로로 HTML 올리기 (예: `resident-edu/새자료.html`)
