@@ -50,7 +50,7 @@
 </head>
 <body>
   <h1>📅 당직 일정 생성기</h1>
-  <div class="sub">자동 균형(평일·주말 분리 + 이월) 후, 원하는 날에 수동 인원(예: 신용범)을 끼워넣으면 원래 담당자가 빠지고 자동 재계산</div>
+  <div class="sub">자동 균형(평일·주말 분리 + 이월) 후, 원하는 날에 수동 인원을 끼워넣으면 원래 담당자가 빠지고 자동 재계산</div>
 
   <div class="card">
     <h2>1. 기간 · 공휴일 · 수동 인원</h2>
@@ -63,7 +63,7 @@
       </div>
       <div class="fld" style="flex:1; min-width:160px">
         <label>수동 배정 인원 (쉼표로 여러 명)</label>
-        <input type="text" id="manual" placeholder="예: 신용범">
+        <input type="text" id="manual" placeholder="예: 이재현">
       </div>
     </div>
     <div class="hint">신정·3.1절·어린이날·현충일·광복절·개천절·한글날·성탄절은 <b>자동</b> 인식. 음력/대체공휴일은 직접 추가하세요. · <b>수동 배정 인원</b>은 자동 배정에서 제외되고, 생성 후 일정표에서 원하는 날에 직접 넣습니다.</div>
@@ -562,7 +562,7 @@ document.getElementById('ghSaveBtn').onclick = ghSave;
   const {y,m}=nextMonth();
   document.getElementById('year').value=y;
   document.getElementById('month').value=m;
-  document.getElementById('manual').value = localStorage.getItem(LS_MANUAL) || '신용범';
+  document.getElementById('manual').value = localStorage.getItem(LS_MANUAL) || '이재현';
   const tok = localStorage.getItem(LS_TOKEN);
   if(tok){ document.getElementById('ghToken').value = tok; document.getElementById('ghRemember').checked = true; }
   const saved=loadPeople();
