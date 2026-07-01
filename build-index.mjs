@@ -21,7 +21,7 @@ const SKIP = new Set(['.git', '.github', 'node_modules', 'assets', '.vscode'])
 // 폴더명 → 표시할 한글 카테고리명(선택). 없으면 폴더명 그대로 사용.
 const LABELS = {
   'resident-edu': '전공의 교육자료',
-  'duty': '당직 · 근무',
+  'duty': '관리용',
   'admin': '행정 자료',
 }
 
