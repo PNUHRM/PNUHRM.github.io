@@ -553,10 +553,19 @@ const LS_TOKEN='duty_gh_token';
 function ghMsg(t, err){ const e=document.getElementById('ghMsg'); if(e) e.innerHTML=`<span class="copied"${err?' style="color:#b91c1c"':''}>${t}</span>`; }
 function getToken(){ return (document.getElementById('ghToken').value.trim()) || localStorage.getItem(LS_TOKEN) || ''; }
 
+let ghTokenBad = false;
 async function ghFetchRemote(token){   // 반환: {sha, data} 또는 null(404)
   const headers = { 'Accept':'application/vnd.github+json' };
   if(token) headers.Authorization = `Bearer ${token}`;
-  const r = await fetch(GH_API + '?t=' + Date.now(), { headers, cache:'no-store' });
+  let r = await fetch(GH_API + '?t=' + Date.now(), { headers, cache:'no-store' });
+  // 공개 저장소라 읽기에는 토큰이 필요 없다. 만료된 토큰은 401, 조직 저장소에
+  // 권한이 없는 토큰은 404를 받는데, 404를 그대로 두면 "백업이 없다"로 오진된다.
+  // 그래서 토큰을 뗀 익명 요청으로 한 번 더 시도한다.
+  if(token && (r.status === 401 || r.status === 404)){
+    const r2 = await fetch(GH_API + '?t=' + Date.now(),
+      { headers:{ 'Accept':'application/vnd.github+json' }, cache:'no-store' });
+    if(r2.ok){ ghTokenBad = true; r = r2; }
+  }
   if(r.status === 404) return null;
   if(!r.ok) throw new Error('GET ' + r.status);
   const j = await r.json();
@@ -567,6 +576,12 @@ async function ghLoad(silent){
   try{
     const res = await ghFetchRemote(getToken());
     if(!res){ if(!silent) ghMsg('저장된 백업이 아직 없습니다', true); return false; }
+    if(ghTokenBad){
+      // 죽은 토큰이 읽기를 막고 있었다. 지워두면 읽기는 익명으로 계속 되고,
+      // 저장할 때만 새 토큰을 요구한다. 새로고침 뒤에 안내가 보이도록 남긴다.
+      localStorage.removeItem(LS_TOKEN);
+      try{ sessionStorage.setItem('duty_token_warn','1'); }catch(e){}
+    }
     const ok = applyBackupObject(res.data);
     if(ok){ if(!silent) ghMsg('✓ 불러옴 — 새로고침…'); return true; }
     if(!silent) ghMsg('백업 형식이 아닙니다', true); return false;
@@ -619,6 +634,14 @@ document.getElementById('ghAutosave').onchange = e => localStorage.setItem('duty
     for(let i=0;i<4;i++) addPersonRow();
   }
   renderSavedList();
+
+  // 죽은 토큰을 걷어낸 직후 한 번 안내
+  try{
+    if(sessionStorage.getItem('duty_token_warn')){
+      sessionStorage.removeItem('duty_token_warn');
+      ghMsg('저장용 토큰이 만료되어 삭제했습니다. 불러오기는 정상이며, 저장하려면 새 토큰이 필요합니다', true);
+    }
+  }catch(e){}
 
   // 이 기기에 저장된 일정이 없으면 GitHub에서 자동으로 한 번 불러오기
   const noLocal = Object.keys(getSaved()).length === 0;
