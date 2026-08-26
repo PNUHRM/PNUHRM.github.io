@@ -549,33 +549,60 @@ document.getElementById('importFile').onchange = (e) => { if(e.target.files[0]) 
 // ---- GitHub 저장/불러오기 ----
 const GH_OWNER='PNUHRM', GH_REPO='PNUHRM.github.io', GH_PATH='duty/data/backup.json';
 const GH_API=`https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${GH_PATH}`;
+// 읽기 전용 우회로. API가 막히거나(한도 60회/시간) 토큰이 말썽일 때 쓴다. 인증 불필요.
+const GH_RAW=`https://raw.githubusercontent.com/${GH_OWNER}/${GH_REPO}/main/${GH_PATH}`;
 const LS_TOKEN='duty_gh_token';
 function ghMsg(t, err){ const e=document.getElementById('ghMsg'); if(e) e.innerHTML=`<span class="copied"${err?' style="color:#b91c1c"':''}>${t}</span>`; }
 function getToken(){ return (document.getElementById('ghToken').value.trim()) || localStorage.getItem(LS_TOKEN) || ''; }
 
 let ghTokenBad = false;
-async function ghFetchRemote(token){   // 반환: {sha, data} 또는 null(404)
-  const headers = { 'Accept':'application/vnd.github+json' };
-  if(token) headers.Authorization = `Bearer ${token}`;
-  let r = await fetch(GH_API + '?t=' + Date.now(), { headers, cache:'no-store' });
-  // 공개 저장소라 읽기에는 토큰이 필요 없다. 만료된 토큰은 401, 조직 저장소에
-  // 권한이 없는 토큰은 404를 받는데, 404를 그대로 두면 "백업이 없다"로 오진된다.
-  // 그래서 토큰을 뗀 익명 요청으로 한 번 더 시도한다.
-  if(token && (r.status === 401 || r.status === 404)){
-    const r2 = await fetch(GH_API + '?t=' + Date.now(),
-      { headers:{ 'Accept':'application/vnd.github+json' }, cache:'no-store' });
-    if(r2.ok){ ghTokenBad = true; r = r2; }
+let ghDiag = '';          // 마지막 시도의 경로별 응답 코드. 실패 메시지에 그대로 붙인다.
+const ACC = { 'Accept':'application/vnd.github+json' };
+
+async function ghTry(url, headers){
+  const u = url + (url.includes('?') ? '&' : '?') + 't=' + Date.now();
+  try { return await fetch(u, { headers, cache:'no-store' }); }
+  catch(e){ return { ok:false, status:0, _err:e.message }; }   // 네트워크·CORS 차단
+}
+
+// 읽기는 세 경로를 차례로 시도한다: 토큰 → 익명 API → raw.
+// 공개 저장소라 읽기에 토큰이 필요 없는데, 만료 토큰(401)이나 조직 저장소
+// 권한 없는 토큰(404)이 붙어 나가면 "백업이 없다"로 오진된다. API 자체가
+// 한도(익명 60회/시간)에 걸리거나 망에서 막히는 경우도 raw로 넘어간다.
+async function ghFetchRemote(token){   // 반환: {sha, data} 또는 null
+  const diag = [];
+  let r = null;
+
+  if(token){
+    const r0 = await ghTry(GH_API, { ...ACC, Authorization:`Bearer ${token}` });
+    diag.push('토큰 ' + (r0._err ? '차단' : r0.status));
+    if(r0.ok) r = r0;
   }
-  if(r.status === 404) return null;
-  if(!r.ok) throw new Error('GET ' + r.status);
-  const j = await r.json();
-  const json = decodeURIComponent(escape(atob((j.content||'').replace(/\n/g,''))));
-  return { sha:j.sha, data: JSON.parse(json) };
+  if(!r){
+    const r1 = await ghTry(GH_API, ACC);
+    diag.push('익명 ' + (r1._err ? '차단' : r1.status));
+    if(r1.ok){ if(token) ghTokenBad = true; r = r1; }
+  }
+  if(r){
+    ghDiag = diag.join(' · ');
+    const j = await r.json();
+    const json = decodeURIComponent(escape(atob((j.content||'').replace(/\n/g,''))));
+    return { sha:j.sha, data: JSON.parse(json) };
+  }
+
+  const r2 = await ghTry(GH_RAW, {});
+  diag.push('raw ' + (r2._err ? '차단' : r2.status));
+  ghDiag = diag.join(' · ');
+  if(r2.ok){
+    if(token) ghTokenBad = true;
+    return { sha:null, data: JSON.parse(await r2.text()) };   // sha 없음 = 저장용으로는 못 씀
+  }
+  return null;
 }
 async function ghLoad(silent){
   try{
     const res = await ghFetchRemote(getToken());
-    if(!res){ if(!silent) ghMsg('저장된 백업이 아직 없습니다', true); return false; }
+    if(!res){ if(!silent) ghMsg('불러오지 못했습니다 — ' + ghDiag, true); return false; }
     if(ghTokenBad){
       // 죽은 토큰이 읽기를 막고 있었다. 지워두면 읽기는 익명으로 계속 되고,
       // 저장할 때만 새 토큰을 요구한다. 새로고침 뒤에 안내가 보이도록 남긴다.
@@ -593,8 +620,13 @@ async function ghSave(silent){
   if(document.getElementById('ghRemember').checked) localStorage.setItem(LS_TOKEN, token);
   ghMsg(silent?'자동 저장 중…':'저장 중…');
   try{
+    // 덮어쓰려면 현재 sha가 필요하다. raw 우회로는 sha를 못 주므로 API로만 읽는다.
     let sha = null;
-    try{ const cur = await ghFetchRemote(token); if(cur) sha = cur.sha; }catch(e){}
+    const cur = await ghTry(GH_API, { ...ACC, Authorization:`Bearer ${token}` });
+    if(cur.ok){ sha = (await cur.json()).sha; }
+    else if(cur.status !== 404){
+      throw new Error(`토큰으로 저장소를 못 읽습니다 (${cur._err ? '차단' : cur.status}). 새 토큰이 필요합니다`);
+    }
     const content = btoa(unescape(encodeURIComponent(JSON.stringify(backupData()))));
     const body = { message:'duty backup '+new Date().toISOString(), content };
     if(sha) body.sha = sha;
