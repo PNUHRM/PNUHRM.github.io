@@ -1,0 +1,1734 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>관절가동범위(ROM) 측정과 표기 — 전공의 교육</title>
+<style>
+:root{
+  --navy:#12314f; --navy2:#1d4a75; --teal:#0d7377; --teal2:#14919b;
+  --amber:#b45309; --amberbg:#fff7ed; --amberbd:#fdba74;
+  --red:#b91c1c; --redbg:#fef2f2; --redbd:#fca5a5;
+  --green:#166534; --greenbg:#f0fdf4; --greenbd:#86efac;
+  --bg:#f5f7fa; --card:#ffffff; --line:#dde5ed; --ink:#16202b; --mute:#5b6b7c;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{
+  font-family:"Malgun Gothic","맑은 고딕",-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;
+  background:var(--bg); color:var(--ink); font-size:15px; line-height:1.65;
+  -webkit-text-size-adjust:100%;
+}
+header{
+  background:linear-gradient(135deg,var(--navy) 0%,var(--navy2) 55%,var(--teal) 130%);
+  color:#fff; padding:18px 16px 14px; position:relative;
+}
+header h1{margin:0;font-size:19px;letter-spacing:-.3px;font-weight:800}
+header .sub{margin-top:5px;font-size:12.5px;opacity:.85;line-height:1.5}
+header .badge{display:inline-block;margin-top:8px;font-size:11px;background:rgba(255,255,255,.16);
+  border:1px solid rgba(255,255,255,.28);padding:3px 9px;border-radius:20px}
+
+nav{position:sticky;top:0;z-index:50;background:var(--navy);display:flex;overflow-x:auto;
+  scrollbar-width:none;box-shadow:0 2px 10px rgba(0,0,0,.18)}
+nav::-webkit-scrollbar{display:none}
+nav button{flex:0 0 auto;background:none;border:none;color:#a9c2d8;font-size:13.5px;font-weight:700;
+  padding:13px 15px;cursor:pointer;font-family:inherit;border-bottom:3px solid transparent;white-space:nowrap}
+nav button.on{color:#fff;border-bottom-color:var(--teal2);background:rgba(255,255,255,.07)}
+
+main{padding:14px 12px 60px;max-width:900px;margin:0 auto}
+section{display:none} section.on{display:block}
+
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:15px;margin-bottom:13px;
+  box-shadow:0 1px 3px rgba(18,49,79,.05)}
+h2.st{font-size:17px;margin:2px 0 12px;color:var(--navy);font-weight:800;
+  border-left:5px solid var(--teal);padding-left:10px;line-height:1.35}
+h3.sst{font-size:14.5px;margin:16px 0 8px;color:var(--navy2);font-weight:800}
+h3.sst:first-child{margin-top:0}
+p{margin:8px 0}
+.mute{color:var(--mute);font-size:13px}
+
+.box{border-radius:10px;padding:11px 13px;margin:10px 0;font-size:13.5px;line-height:1.6;border:1px solid}
+.box b{display:block;margin-bottom:4px;font-size:13px;letter-spacing:-.2px}
+.warn{background:var(--amberbg);border-color:var(--amberbd);color:#7c2d12}
+.crit{background:var(--redbg);border-color:var(--redbd);color:#7f1d1d}
+.good{background:var(--greenbg);border-color:var(--greenbd);color:#14532d}
+.info{background:#eff6ff;border-color:#bfdbfe;color:#1e3a5f}
+
+.tw{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:10px 0;border:1px solid var(--line);border-radius:9px}
+table{border-collapse:collapse;width:100%;font-size:13px;min-width:100%;background:#fff}
+th,td{border:1px solid var(--line);padding:7px 8px;text-align:left;vertical-align:top}
+th{background:#eef3f8;color:var(--navy);font-weight:800;white-space:nowrap;font-size:12.5px}
+td.c,th.c{text-align:center}
+tr.hl td{background:#fff7ed}
+.chip{display:inline-block;padding:1px 6px;border-radius:5px;font-size:11px;font-weight:800;margin-right:3px}
+.c-red{background:#fee2e2;color:#991b1b} .c-amb{background:#ffedd5;color:#9a3412}
+.c-grn{background:#dcfce7;color:#166534} .c-blu{background:#dbeafe;color:#1e40af}
+.c-gry{background:#e8edf2;color:#475569}
+
+.acc{border:1px solid var(--line);border-radius:10px;margin-bottom:9px;overflow:hidden;background:#fff}
+.acc>.hd{padding:12px 13px;background:#f2f6fa;cursor:pointer;display:flex;justify-content:space-between;
+  align-items:center;gap:10px;font-weight:800;color:var(--navy);font-size:14px}
+.acc>.hd .rg{font-size:12px;font-weight:700;color:var(--teal);white-space:nowrap}
+.acc>.hd::after{content:"▾";color:var(--mute);font-size:12px;transition:.2s}
+.acc.open>.hd::after{transform:rotate(180deg)}
+.acc>.bd{display:none;padding:13px;border-top:1px solid var(--line)}
+.acc.open>.bd{display:block}
+
+.figwrap{background:#fbfdff;border:1px solid var(--line);border-radius:9px;padding:6px;margin:8px 0}
+svg{display:block;width:100%;height:auto}
+.leg{display:flex;flex-wrap:wrap;gap:8px 14px;font-size:11.5px;color:var(--mute);padding:4px 6px 2px}
+.leg i{display:inline-block;width:16px;height:0;border-top-width:3px;vertical-align:middle;margin-right:4px}
+
+dl.tech{margin:8px 0 0;font-size:13.5px}
+dl.tech dt{font-weight:800;color:var(--navy2);margin-top:9px;font-size:12.5px}
+dl.tech dd{margin:2px 0 0 0;padding-left:0;line-height:1.6}
+
+.sftrbox{background:var(--navy);color:#dff2f3;font-family:ui-monospace,Menlo,Consolas,monospace;
+  padding:9px 12px;border-radius:8px;font-size:14px;margin:8px 0;letter-spacing:.4px;overflow-x:auto;white-space:nowrap}
+.sftrbox .k{color:#7dd3d8;font-weight:700}
+
+.ctrl{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:10px 0}
+.ctrl label{font-size:12.5px;font-weight:700;color:var(--navy2)}
+.ctrl input[type=number]{width:66px;padding:7px 8px;border:1.5px solid var(--line);border-radius:7px;
+  font-size:15px;font-family:inherit;text-align:center}
+.ctrl select{padding:7px 8px;border:1.5px solid var(--line);border-radius:7px;font-size:14px;font-family:inherit;background:#fff}
+.btn{background:var(--teal);color:#fff;border:none;padding:9px 15px;border-radius:8px;font-size:13.5px;
+  font-weight:800;cursor:pointer;font-family:inherit}
+.btn.alt{background:#e6edf3;color:var(--navy)}
+.btn:active{opacity:.8}
+.presets{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.presets button{background:#eef3f8;border:1px solid var(--line);color:var(--navy);font-size:12px;
+  padding:6px 10px;border-radius:16px;cursor:pointer;font-family:inherit;font-weight:700}
+
+.q{border:1px solid var(--line);border-radius:11px;padding:13px;margin-bottom:11px;background:#fff}
+.q .num{font-size:11.5px;font-weight:800;color:var(--teal);letter-spacing:.4px}
+.q .qt{font-weight:700;margin:5px 0 10px;font-size:14px;line-height:1.6}
+.q .opt{display:block;width:100%;text-align:left;background:#f7fafc;border:1.5px solid var(--line);
+  border-radius:8px;padding:10px 12px;margin-bottom:6px;font-size:13.5px;cursor:pointer;font-family:inherit;line-height:1.5}
+.q .opt.ok{background:var(--greenbg);border-color:var(--greenbd);font-weight:700}
+.q .opt.no{background:var(--redbg);border-color:var(--redbd)}
+.q .exp{display:none;margin-top:8px;padding:10px 12px;background:#f0f7ff;border-left:4px solid var(--navy2);
+  border-radius:0 8px 8px 0;font-size:13px;line-height:1.65}
+.q.done .exp{display:block}
+.score{position:sticky;top:44px;z-index:40;background:var(--navy2);color:#fff;padding:9px 13px;
+  border-radius:9px;font-size:13.5px;font-weight:800;margin-bottom:12px;display:flex;justify-content:space-between}
+
+.reflist{font-size:12.5px;line-height:1.7;padding-left:20px;margin:6px 0}
+.reflist li{margin-bottom:5px}
+.evid{font-size:11px;color:var(--mute);font-style:normal}
+footer{text-align:center;font-size:11.5px;color:var(--mute);padding:22px 14px 34px;line-height:1.7}
+.pill{display:inline-block;background:#eef3f8;border:1px solid var(--line);border-radius:14px;
+  padding:2px 9px;font-size:11.5px;color:var(--navy2);font-weight:700;margin:2px 3px 2px 0}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>관절가동범위(ROM) 측정과 표기</h1>
+  <div class="sub">주요 관절 중심 · Neutral-Zero / SFTR / AAOS / AMA Guides 대조<br>재활의학과 전공의 교육용 · 오프라인 단독 실행</div>
+  <span class="badge">v1 · 2026.09</span>
+</header>
+
+<nav id="nav"></nav>
+
+<main>
+  <section id="s-principle" class="on"></section>
+  <section id="s-notation"></section>
+  <section id="s-ue"></section>
+  <section id="s-spine"></section>
+  <section id="s-le"></section>
+  <section id="s-norms"></section>
+  <section id="s-quiz"></section>
+  <section id="s-ref"></section>
+</main>
+
+<footer>
+  본 자료는 교육 목적이며, 장해평가·진단서 작성 시에는 해당 기준의 원전(AAOS 소책자, AMA Guides 해당 판,<br>
+  국민연금 「신체장애 운동범위 측정기준」, 산재 시행규칙 별표 5)을 반드시 직접 대조하십시오.<br>
+  <span style="opacity:.7">부산대학교병원 재활의학과 · 전공의 교육자료</span>
+</footer>
+
+<script>
+/* ============================================================
+   SVG 도해 생성기 — 골격 분절(회색) + 각도계 고정팔(점선 남색)
+   + 이동팔(실선 청록) + 축(적색) + 운동호
+   ============================================================ */
+const D2R = Math.PI/180;
+// 각도 t: 위쪽(12시)=0, 시계방향 +
+function P(cx,cy,r,t){ return [cx + r*Math.sin(t*D2R), cy - r*Math.cos(t*D2R)]; }
+function fmt(n){ return Math.round(n*10)/10; }
+
+function arcPath(cx,cy,r,t1,t2){
+  const [x1,y1]=P(cx,cy,r,t1), [x2,y2]=P(cx,cy,r,t2);
+  const large = Math.abs(t2-t1)>180?1:0, sweep = t2>t1?1:0;
+  return `M ${fmt(x1)} ${fmt(y1)} A ${r} ${r} 0 ${large} ${sweep} ${fmt(x2)} ${fmt(y2)}`;
+}
+
+/* 도해 config:
+   {w,h, jx,jy, segs:[{t,len,wd,label,lt}], fix:{t,len,label},
+    mov:{t,len,label}, arc:{from,to,label,r}, notes:[{x,y,text,anchor,size}], axisLabel}
+*/
+function fig(c){
+  const w=c.w||330, h=c.h||250, jx=c.jx, jy=c.jy;
+  let s=`<svg viewBox="0 0 ${w} ${h}" role="img" aria-label="측정 도해">`;
+  s+=`<rect width="${w}" height="${h}" fill="#fbfdff"/>`;
+  // 배경 격자 기준선
+  if(c.ground) s+=`<line x1="0" y1="${c.ground}" x2="${w}" y2="${c.ground}" stroke="#e3ebf2" stroke-width="2" stroke-dasharray="6 5"/>`;
+  // 신체 분절
+  (c.segs||[]).forEach(g=>{
+    const ox = g.ox||0, oy = g.oy||0;
+    const [x2,y2]=P(jx+ox,jy+oy,g.len,g.t);
+    s+=`<line x1="${jx+ox}" y1="${jy+oy}" x2="${fmt(x2)}" y2="${fmt(y2)}" stroke="#b9c7d4" stroke-width="${g.wd||17}" stroke-linecap="round"/>`;
+    if(g.label){
+      const [lx,ly]=P(jx+ox,jy+oy,g.len*(g.lp||0.55),g.t);
+      s+=`<text x="${fmt(lx+(g.dx||0))}" y="${fmt(ly+(g.dy||0))}" font-size="10.5" fill="#5b6b7c" text-anchor="middle" font-weight="700">${g.label}</text>`;
+    }
+  });
+  // 운동 호
+  if(c.arc){
+    const r=c.arc.r||58;
+    s+=`<path d="${arcPath(jx,jy,r,c.arc.from,c.arc.to)}" fill="none" stroke="#0d7377" stroke-width="2.4" stroke-dasharray="4 3" opacity=".75"/>`;
+    const mid=(c.arc.from+c.arc.to)/2, [ax,ay]=P(jx,jy,r+15,mid);
+    s+=`<text x="${fmt(ax)}" y="${fmt(ay)}" font-size="11.5" fill="#0d7377" font-weight="800" text-anchor="middle">${c.arc.label}</text>`;
+    // 화살촉
+    const [hx,hy]=P(jx,jy,r,c.arc.to);
+    const dir = c.arc.to>c.arc.from?1:-1;
+    const [bx,by]=P(jx,jy,r,c.arc.to-dir*7);
+    s+=`<polygon points="${fmt(hx)},${fmt(hy)} ${fmt(bx+dir*4)},${fmt(by+4)} ${fmt(bx-dir*3)},${fmt(by-5)}" fill="#0d7377" opacity=".85"/>`;
+  }
+  // 라벨 배치 보정: 캔버스 밖·상하 노트영역 침범 방지
+  const topBand=(c.topBand===undefined?44:c.topBand), botBand=(c.botBand===undefined?h-30:c.botBand);
+  function place(lx,ly,txt,anchor){
+    const plain=String(txt).replace(/<[^>]*>/g,'');
+    let tw=0; for(const ch of plain){ tw += /[\u1100-\u11FF\u3130-\u318F\uAC00-\uD7AF]/.test(ch) ? 11 : 6; }
+    let a=anchor||'middle';
+    if(a==='middle'){
+      if(lx-tw/2<6) a='start'; else if(lx+tw/2>w-6) a='end';
+    }
+    if(a==='start') lx=Math.min(Math.max(lx,6), w-6-tw);
+    else if(a==='end') lx=Math.max(Math.min(lx,w-6), 6+tw);
+    else lx=Math.min(Math.max(lx,6+tw/2), w-6-tw/2);
+    ly=Math.min(Math.max(ly,topBand),botBand);
+    return [fmt(lx),fmt(ly),a];
+  }
+  // 고정팔
+  if(c.fix){
+    const [x2,y2]=P(jx,jy,c.fix.len,c.fix.t);
+    s+=`<line x1="${jx}" y1="${jy}" x2="${fmt(x2)}" y2="${fmt(y2)}" stroke="#12314f" stroke-width="2.6" stroke-dasharray="7 4"/>`;
+    const [fx0,fy0]=P(jx,jy,c.fix.len+(c.fix.lo||16),c.fix.t);
+    const [lx,ly,an]=place(fx0+(c.fix.ldx||0),fy0+(c.fix.ldy||0),c.fix.label,c.fix.anchor);
+    s+=`<text x="${lx}" y="${ly}" font-size="11" fill="#12314f" font-weight="800" text-anchor="${an}">${c.fix.label}</text>`;
+  }
+  // 이동팔
+  if(c.mov){
+    const [x2,y2]=P(jx,jy,c.mov.len,c.mov.t);
+    s+=`<line x1="${jx}" y1="${jy}" x2="${fmt(x2)}" y2="${fmt(y2)}" stroke="#0d7377" stroke-width="3.2"/>`;
+    const [mx0,my0]=P(jx,jy,c.mov.len+(c.mov.lo||16),c.mov.t);
+    const [lx,ly,an]=place(mx0+(c.mov.ldx||0),my0+(c.mov.ldy||0),c.mov.label,c.mov.anchor);
+    s+=`<text x="${lx}" y="${ly}" font-size="11" fill="#0d7377" font-weight="800" text-anchor="${an}">${c.mov.label}</text>`;
+  }
+  // 축
+  s+=`<circle cx="${jx}" cy="${jy}" r="6.5" fill="#fff" stroke="#b91c1c" stroke-width="3"/>`;
+  s+=`<circle cx="${jx}" cy="${jy}" r="2" fill="#b91c1c"/>`;
+  if(c.axisLabel){
+    const [alx,aly,alan]=place(jx+(c.alx||0), jy+(c.aly||-14), c.axisLabel, c.alAnchor);
+    s+=`<text x="${alx}" y="${aly}" font-size="10.5" fill="#b91c1c" font-weight="800" text-anchor="${alan}">${c.axisLabel}</text>`;
+  }
+  (c.notes||[]).forEach(n=>{
+    s+=`<text x="${n.x}" y="${n.y}" font-size="${n.size||10.5}" fill="${n.fill||'#5b6b7c'}" text-anchor="${n.anchor||'start'}" font-weight="${n.w||600}">${n.text}</text>`;
+  });
+  s+=`</svg>`;
+  return `<div class="figwrap">${s}
+    <div class="leg">
+      <span><i style="border-top:3px solid #b9c7d4"></i>신체 분절</span>
+      <span><i style="border-top:3px dashed #12314f"></i>고정팔</span>
+      <span><i style="border-top:3px solid #0d7377"></i>이동팔</span>
+      <span><span style="display:inline-block;width:9px;height:9px;border:2.5px solid #b91c1c;border-radius:50%;vertical-align:middle;margin-right:4px"></span>축(중심)</span>
+    </div></div>`;
+}
+</script>
+<script>
+/* ===== 탭 ===== */
+const TABS=[
+ ['s-principle','기본원칙'],['s-notation','표기법'],['s-ue','상지'],['s-spine','척추'],
+ ['s-le','하지'],['s-norms','정상치·불일치'],['s-quiz','퀴즈'],['s-ref','근거']
+];
+(function(){
+  const n=document.getElementById('nav');
+  n.innerHTML=TABS.map((t,i)=>`<button data-t="${t[0]}" class="${i===0?'on':''}">${t[1]}</button>`).join('');
+  n.addEventListener('click',e=>{
+    const b=e.target.closest('button'); if(!b)return;
+    n.querySelectorAll('button').forEach(x=>x.classList.remove('on')); b.classList.add('on');
+    document.querySelectorAll('main section').forEach(s=>s.classList.remove('on'));
+    document.getElementById(b.dataset.t).classList.add('on');
+    window.scrollTo({top:0,behavior:'instant'});
+  });
+})();
+/* 아코디언 위임 */
+document.addEventListener('click',e=>{
+  const h=e.target.closest('.acc>.hd'); if(h) h.parentElement.classList.toggle('open');
+});
+
+/* ===== 1. 기본원칙 ===== */
+document.getElementById('s-principle').innerHTML=`
+<div class="card">
+  <h2 class="st">이 자료의 검증 표기</h2>
+  <p class="mute" style="margin-top:0">ROM 분야는 <b>"정상치 단일 표준이 존재하지 않는다"</b>는 점이 가장 큰 함정입니다.
+  본 자료는 모든 수치에 출처 등급을 붙였습니다.</p>
+  <div class="tw"><table>
+    <tr><th style="width:78px">등급</th><th>의미</th></tr>
+    <tr><td class="c"><span class="chip c-grn">확인</span></td><td>1차 또는 준-1차 출처(원 논문·공식 고시·AMA 공개 부록)에서 실제 수치를 확인</td></tr>
+    <tr><td class="c"><span class="chip c-blu">2차</span></td><td>표준 교과서(Norkin&amp;White 등)를 재현한 2차 자료에서 <b>2개 이상 독립 출처가 일치</b></td></tr>
+    <tr><td class="c"><span class="chip c-amb">불일치</span></td><td>출처 간 값이 다름 — 기관 내 프로토콜로 통일 필요</td></tr>
+    <tr><td class="c"><span class="chip c-red">미확인</span></td><td>원전 접근 실패 — 추정치를 기입하지 않음. 원서 대조 필수</td></tr>
+  </table></div>
+  <div class="box crit"><b>⚠ 가장 먼저 알아야 할 사실</b>
+  "AAOS 정상치"라고 유통되는 표들 상당수가 실제로는 AAOS 원전에 없는 값을 섞어 놓았습니다.
+  예: 한 동료심사 논문 부록은 각주에서 "손가락 값은 AAOS가 아니라 Richard &amp; Parry 자료에서 유도", "어깨 내전 값은 AAOS에 없음",
+  "엄지 CMC 값은 우리가 추가"라고 스스로 밝히고 있습니다. <b>차트에 값을 적을 때 반드시 "어느 기준인지"를 병기</b>하십시오.</div>
+</div>
+
+<div class="card">
+  <h2 class="st">AROM vs PROM — 무엇을 왜 나누어 적는가</h2>
+  <div class="tw"><table>
+    <tr><th style="width:88px">구분</th><th>정의</th><th>임상 의미</th></tr>
+    <tr><td><b>AROM</b><br>능동</td><td>환자가 <b>스스로, 도움 없이</b> 근수축으로 만드는 운동호</td><td>근력 + 통증 + 운동조절 + 관절 상태의 <b>합</b></td></tr>
+    <tr><td><b>PROM</b><br>수동</td><td>검사자가 만드는 운동호</td><td><b>관절·연부조직 자체</b>의 가동성. 종말감(end-feel) 평가는 오직 여기서</td></tr>
+  </table></div>
+  <p><b>PROM ≥ AROM인 이유</b> — 이완된 근육은 부피가 작아 연부조직 접근(soft tissue approximation)이 늦게 일어나고,
+  검사자의 overpressure가 조직을 추가로 신장시키기 때문입니다. <span class="evid">[Physiopedia, Assessing ROM]</span></p>
+  <div class="tw"><table>
+    <tr><th>패턴</th><th>해석</th></tr>
+    <tr class="hl"><td><b>PROM ≫ AROM (간극 큼)</b></td><td>근력 약화(근·건 파열, 말초신경손상, 근병증) / 통증 억제 / 상위운동신경원 병변의 선택적 운동조절 장애</td></tr>
+    <tr><td><b>PROM ≈ AROM, 둘 다 감소</b></td><td>관절 자체 문제 — 구축, 관절낭 유착, 골성 차단</td></tr>
+  </table></div>
+  <div class="box good"><b>실무 순서</b> ① AROM 먼저 (환자의 의지·통증 발생 각도 확인) → ② PROM 나중 (종말감 평가).
+  반대로 하면 통증 유발로 AROM이 인위적으로 감소합니다.</div>
+</div>
+
+<div class="card">
+  <h2 class="st">종말감(End-feel) — Cyriax 분류</h2>
+  <h3 class="sst">정상 종말감</h3>
+  <div class="tw"><table>
+    <tr><th style="width:110px">종류</th><th>성질</th><th>대표 예</th></tr>
+    <tr><td><b>Bony / Hard</b><br>골성</td><td>단단하고 갑작스러우며 <b>무통</b> — 뼈가 뼈에 닿음</td><td><b>주관절 신전</b>(주두↔주두와), <b>손목 요측편위</b>(요골경상돌기↔주상골), 거골하 외번</td></tr>
+    <tr><td><b>Soft tissue<br>approximation</b><br>연부조직 접근</td><td>말랑한 압박감, 무통</td><td><b>주관절 굴곡</b>(이두근), <b>슬관절 굴곡</b>(종아리↔대퇴), 고관절 굴곡(무릎 굴곡 시)</td></tr>
+    <tr><td><b>Firm / Tissue<br>stretch</b><br>조직신장·관절낭성</td><td>탄성 있는 저항 — 끝에서 <b>몇 도 더 밀렸다가 되돌아오는 탄성 여유(give)</b>가 있음</td><td><b>견관절 외회전</b>(관절낭), 고관절 신전, 손목 신전, 족관절 배굴(근육성), 경추 측굴(인대성)</td></tr>
+  </table></div>
+  <h3 class="sst">비정상 종말감</h3>
+  <div class="tw"><table>
+    <tr><th style="width:110px">종류</th><th>성질</th><th>대표 상황</th></tr>
+    <tr><td><b>Empty</b><br>공허</td><td>물리적 저항은 없는데 <b>심한 통증</b>으로 환자가 중단</td><td>급성 점액낭염, 급성 관절염증, 종양·농양 → <b>적색기</b></td></tr>
+    <tr><td><b>Springy block</b><br>탄성차단</td><td>정상 ROM 도달 전 튕기는 느낌</td><td><b>반월상연골 파열 → 슬관절 신전 제한</b>, 관절내 유리체</td></tr>
+    <tr><td><b>Muscle spasm</b></td><td>갑작스럽고 단단한 정지 + 통증(보호성 방어수축)</td><td>급성 요통의 요추 굴곡, 급성 손상 후 견관절 외전</td></tr>
+    <tr><td><b>Leathery /<br>abnormal capsular</b></td><td>firm과 비슷하나 <b>ROM이 크게 감소한</b> 지점에서 나타남</td><td><b>유착성 관절낭염의 견관절 외회전</b></td></tr>
+    <tr><td><b>Too hard</b></td><td>예상치 못한 위치의 골성 차단</td><td>골극, 퇴행성 관절질환, 골절 부정유합</td></tr>
+    <tr><td><b>Boggy / Too soft</b></td><td>질척한 느낌</td><td>관절삼출, 급성 인대손상 후 부종</td></tr>
+  </table></div>
+  <div class="box info"><b>견관절 관절낭 패턴(capsular pattern)</b>
+  <b>외회전 &gt; 외전 &gt; 내회전</b> 순으로 제한 — 유착성 관절낭염 진단의 핵심. ROM 수치만 적고 이 "제한의 순서"를 보지 않으면 놓칩니다.</div>
+</div>
+
+<div class="card">
+  <h2 class="st">이관절근(two-joint muscle) — 인접 관절 위치를 반드시 기록하는 이유</h2>
+  <div class="tw"><table>
+    <tr><th style="width:150px">측정</th><th>인접 관절 위치에 따른 변화</th><th>기전</th></tr>
+    <tr class="hl"><td><b>고관절 굴곡</b></td><td>무릎 <b>굴곡</b> 시 120° / 무릎 <b>신전</b> 시 ~90°</td><td>햄스트링 긴장</td></tr>
+    <tr><td><b>고관절 신전</b></td><td>무릎 <b>신전</b>위로 측정 (굴곡하면 값 감소)</td><td>대퇴직근 긴장</td></tr>
+    <tr class="hl"><td><b>족관절 배굴</b></td><td>무릎 <b>신전</b> 시 ~10° / 무릎 <b>90° 굴곡</b> 시 ~20°</td><td>비복근 긴장 (가자미근은 단관절)</td></tr>
+    <tr><td><b>슬관절 굴곡</b></td><td>복와위(대퇴직근 긴장) &lt; 앙와위 고관절 굴곡</td><td>대퇴직근 긴장</td></tr>
+  </table></div>
+  <div class="box warn"><b>Silfverskiöld test — 비복근 vs 가자미근 감별</b>
+  거골하관절을 <b>중립으로 잠그고</b> ① 무릎 신전 시 배굴, ② 무릎 90° 굴곡 시 배굴을 각각 측정.<br>
+  · <b>양성</b> = 굴곡 시 배굴이 유의하게 증가 → <b>비복근 단독 구축</b> → gastrocnemius recession(Strayer) 고려<br>
+  · <b>음성</b> = 두 자세 모두 동일하게 제한 → <b>가자미근성 equinus 또는 골성 차단</b> → 아킬레스건 연장술 고려<br>
+  <span class="chip c-amb">불일치</span> 양성 판정의 정확한 각도 역치(통상 10° 이상 차이)는 문헌마다 달라 Physiopedia도 명시하지 않습니다. 원저 확인 필요.</div>
+  <div class="box info"><b>Ely(Duncan-Ely) test — 대퇴직근</b> 복와위에서 발뒤꿈치를 둔부로 굴곡.
+  <b>양성 = 환측 골반이 침대에서 들림.</b><br>
+  <b>Thomas test</b>는 고관절 편 참조 — 굴곡구축을 각도로 정량하는 유일한 표준 방법입니다.</div>
+</div>
+
+<div class="card">
+  <h2 class="st">경직(spasticity) 사지의 ROM — MAS만 적으면 안 되는 이유</h2>
+  <p>경직의 본질은 <b>속도 의존성</b>입니다. 느리게 움직여 얻은 값이 <b>진짜 PROM</b>이고,
+  빠르게 움직일 때 걸리는 각도와의 차이가 <b>동적 성분</b>입니다.</p>
+  <div class="tw"><table>
+    <tr><th style="width:70px">지표</th><th>측정 속도</th><th>의미</th></tr>
+    <tr><td><b>R2</b></td><td><b>V1</b> — 최대한 느리게</td><td><b>진짜 관절 가동범위 = 구축 성분</b></td></tr>
+    <tr><td><b>R1</b></td><td>V2(중력 낙하속도) 또는 <b>V3</b>(최대한 빠르게)</td><td>catch가 걸리는 각도</td></tr>
+    <tr class="hl"><td><b>R2 − R1</b></td><td>—</td><td><b>경직의 동적 성분.</b> 크면 → 보툴리눔독소·신경블록 반응 기대.<br>작고 R2 자체가 작으면 → <b>고정 구축</b> → 캐스팅·수술 대상</td></tr>
+  </table></div>
+  <p class="mute">X(근반응의 질) 0–5: 0 저항 없음 / 1 약한 저항 후 풀림 / 2 명확한 catch 후 풀림 / 3 피로성 간대(&lt;10초) / 4 비피로성 간대(&gt;10초).
+  표준 자세: 상지 = 앉은 자세, 하지 = 앙와위. <span class="evid">[Modified Tardieu Scale; Shirley Ryan AbilityLab]</span></p>
+  <div class="box good"><b>권장 기록 형식</b>
+  <div class="sftrbox" style="margin-top:6px">Rt ankle DF (knee ext) : AROM 0° / <span class="k">R1 −15°</span> / <span class="k">R2 +5°</span> / MAS 1+
+Rt ankle DF (knee flex): <span class="k">R1 −5°</span> / <span class="k">R2 +15°</span>
+→ dynamic component (R2−R1) = 20° (knee ext) : 비복근 우세 경직</div>
+  MAS만 기록하면 <b>구축과 경직이 구분되지 않습니다.</b> 반드시 MAS + R1/R2를 함께 적으십시오.</div>
+</div>
+
+<div class="card">
+  <h2 class="st">측정 오차 — 몇 도부터 "변했다"고 말할 수 있는가</h2>
+  <p>ROM은 재현성이 낮은 검사입니다. <b>MDC(최소검출가능변화)</b>보다 작은 변화는 측정오차일 뿐입니다.</p>
+  <div class="tw"><table>
+    <tr><th>관절 / 운동</th><th class="c">ICC</th><th class="c">SEM</th><th class="c">MDC</th><th>출처</th></tr>
+    <tr><td>주관절 (각도계 전반)</td><td class="c">0.945–0.973</td><td class="c">—</td><td class="c">신전 <b>10.3°</b><br>굴곡 <b>7.0°</b></td><td class="evid">Chapleau, CORR 2011</td></tr>
+    <tr><td>슬관절 굴곡 — <b>검사자 내</b>(수동)</td><td class="c">0.97</td><td class="c">2.2°</td><td class="c"><b>6.2°</b></td><td class="evid" rowspan="3">Jakobsen, Physiother Res Int 2010 (TKA 후)</td></tr>
+    <tr class="hl"><td>슬관절 굴곡 — <b>검사자 간</b>(능동)</td><td class="c">0.81</td><td class="c">5.7°</td><td class="c"><b>15.7°</b></td></tr>
+    <tr><td>슬관절 신전 — 검사자 내(능동)</td><td class="c">0.94</td><td class="c">1.4°</td><td class="c"><b>4.0°</b></td></tr>
+    <tr class="hl"><td>고관절 굴곡 — 검사자 간</td><td class="c">0.73</td><td class="c">8°</td><td class="c"><b>17°</b></td><td class="evid" rowspan="2">Poulsen, BMC MSK Disord 2012 (고관절 OA)</td></tr>
+    <tr class="hl"><td><b>고관절 내회전</b> — 검사자 간</td><td class="c">0.63 / 0.44</td><td class="c">9–10°</td><td class="c"><b>20–25°</b></td></tr>
+    <tr><td>견관절(각도계·디지털경사계) 검사자 내</td><td class="c">≥0.94</td><td class="c">—</td><td class="c">기구 간 차이 <b>2–20°</b></td><td class="evid">Kolber, IJSPT 2012</td></tr>
+    <tr><td>견관절 굴곡 실제 인체 — 검사자 간(5기구)</td><td class="c">0.697–0.975</td><td class="c">1.9–4.6°</td><td class="c"><b>5–11°</b></td><td class="evid">Kiatkulanusorn, Sci Rep 2023</td></tr>
+  </table></div>
+  <div class="box crit"><b>⚠ 임상적으로 반드시 기억할 세 가지</b>
+  ① <b>검사자가 바뀌면 MDC가 2~3배로 커진다.</b> 슬관절 능동굴곡은 검사자 내 6.2° → 검사자 간 15.7°.
+  → <b>추적 관찰은 같은 사람이, 같은 기구로, 같은 자세에서.</b><br>
+  ② <b>서로 다른 의사가 잰 고관절 내회전 15° 차이는 "변화"라고 말할 수 없다</b>(MDC 20–25°).<br>
+  ③ 각도계·경사계·스마트폰 앱은 <b>표준 각도판에서는 모두 ICC&gt;0.99</b>지만, 실제 인체에서는 95% 일치한계가 ±11°까지 벌어집니다.
+  <b>추적 중 기구를 바꾸지 마십시오.</b></div>
+  <div class="box info"><b>기구 선택</b> — 스마트폰 앱: 검사자 내 ICC&gt;0.75가 96%(26편 중 25편)로 우수하나,
+  절대신뢰도(SEM/MDC&lt;5°) 충족은 76%에 그침. <b>척추 축회전은 9편 중 4편에서 부적합</b> — 앱의 약점입니다.
+  <span class="evid">[Keogh, PLoS ONE 2019, 37편 체계적 고찰]</span></div>
+</div>
+
+<div class="card">
+  <h2 class="st">실무 10규칙</h2>
+  <div class="tw"><table>
+    <tr><td class="c" style="width:34px"><b>1</b></td><td><b>AROM과 PROM을 분리 기록.</b> 슬관절 <code>AROM 15–130° / PROM 5–135°</code> → 신전지연 10°, 굴곡구축 5°</td></tr>
+    <tr><td class="c"><b>2</b></td><td><b>랜드마크는 매번 촉진.</b> 눈대중 정렬이 최대 오차원</td></tr>
+    <tr><td class="c"><b>3</b></td><td><b>인접 관절 위치를 기록.</b> "족관절 배굴 15°"는 무릎 자세 없이는 의미가 없음</td></tr>
+    <tr><td class="c"><b>4</b></td><td><b>회전은 측정 자세를 기록.</b> 견관절 회전(90° 외전 vs 몸통 옆), 고관절 회전(앉은 자세 vs 복와위)</td></tr>
+    <tr><td class="c"><b>5</b></td><td><b>좌우 비교.</b> 건측이 그 환자의 개인 기준선. 절대 표준치보다 우선</td></tr>
+    <tr><td class="c"><b>6</b></td><td><b>통증 발생 각도를 별도 기재.</b> <code>AROM 0–90° (통증 시작 70°), PROM 0–140°</code></td></tr>
+    <tr><td class="c"><b>7</b></td><td><b>종말감을 함께 적는다.</b> 같은 "굴곡 90°"라도 empty와 firm은 완전히 다른 병태</td></tr>
+    <tr><td class="c"><b>8</b></td><td><b>과신전을 "−10°"로 쓰지 않는다.</b> 굴곡구축 10°와 혼동됨 → SFTR <code>10-0-150</code>으로</td></tr>
+    <tr><td class="c"><b>9</b></td><td><b>사용 기준(AAOS / AMA / 국민연금)을 명시.</b> 같은 값이 기준에 따라 정상이 되기도, 20% 제한이 되기도 함</td></tr>
+    <tr><td class="c"><b>10</b></td><td><b>MDC 이하 변화는 "변화 없음"으로 해석.</b> 5° 이내 변동에 치료 방침을 바꾸지 않는다</td></tr>
+  </table></div>
+</div>
+`;
+</script>
+<script>
+/* ===== 2. 표기법 ===== */
+function notationSVG(a,b,c,mode){
+  // mode: 'normal' | 'ankyl'
+  const w=340,h=250,cx=170,cy=150,R=108;
+  let s=`<svg viewBox="0 0 ${w} ${h}">`;
+  s+=`<rect width="${w}" height="${h}" fill="#fbfdff"/>`;
+  // 눈금
+  for(let t=-180;t<=180;t+=15){
+    const big = t%45===0;
+    const [x1,y1]=P(cx,cy,R+(big?0:5),t), [x2,y2]=P(cx,cy,R+(big?13:9),t);
+    s+=`<line x1="${fmt(x1)}" y1="${fmt(y1)}" x2="${fmt(x2)}" y2="${fmt(y2)}" stroke="#cfdae5" stroke-width="${big?1.6:1}"/>`;
+    if(big&&t!==0&&Math.abs(t)!==90){const [lx,ly]=P(cx,cy,R+25,t);
+      s+=`<text x="${fmt(lx)}" y="${fmt(ly+3)}" font-size="9" fill="#9fb0c0" text-anchor="middle">${Math.abs(t)}</text>`;}
+  }
+  if(mode==='ankyl'){
+    const ang = a>0 ? -a : c;
+    s+=`<circle cx="${cx}" cy="${cy}" r="${R}" fill="#fed7aa" opacity=".3"/>`;
+    const [x2,y2]=P(cx,cy,R,ang);
+    s+=`<line x1="${cx}" y1="${cy}" x2="${fmt(x2)}" y2="${fmt(y2)}" stroke="#b91c1c" stroke-width="5" stroke-linecap="round"/>`;
+    const [lx,ly]=P(cx,cy,R+34,ang);
+    s+=`<text x="${fmt(lx)}" y="${fmt(ly)}" font-size="12" fill="#b91c1c" font-weight="800" text-anchor="middle">${Math.abs(ang)}° 고정</text>`;
+    s+=`<text x="${w-8}" y="${h-8}" font-size="12" fill="#b91c1c" font-weight="800" text-anchor="end">강직(ankylosis) — 운동 없음</text>`;
+  }else{
+    // 활동 범위
+    let lo,hi,blockedFrom=null,blockedTo=null;
+    if(b>0){
+      if(c>0){ lo=b; hi=c; blockedFrom=0; blockedTo=b; }
+      else { lo=-a; hi=-b; blockedFrom=-b; blockedTo=0; }
+    } else { lo=-a; hi=c; }
+    if(blockedFrom!==null){
+      const [bx1,by1]=P(cx,cy,R,blockedFrom),[bx2,by2]=P(cx,cy,R,blockedTo);
+      s+=`<path d="M ${cx} ${cy} L ${fmt(bx1)} ${fmt(by1)} A ${R} ${R} 0 0 ${blockedTo>blockedFrom?1:0} ${fmt(bx2)} ${fmt(by2)} Z" fill="#fdba74" opacity=".38"/>`;
+      const mid=(blockedFrom+blockedTo)/2,[mx,my]=P(cx,cy,R*0.72,mid+(blockedTo>blockedFrom?11:-11));
+      s+=`<text x="${fmt(mx)}" y="${fmt(my)}" font-size="10" fill="#9a3412" font-weight="800" text-anchor="middle">도달 불가</text>`;
+    }
+    const [ax1,ay1]=P(cx,cy,R,lo),[ax2,ay2]=P(cx,cy,R,hi);
+    s+=`<path d="M ${cx} ${cy} L ${fmt(ax1)} ${fmt(ay1)} A ${R} ${R} 0 ${Math.abs(hi-lo)>180?1:0} 1 ${fmt(ax2)} ${fmt(ay2)} Z" fill="#0d7377" opacity=".16"/>`;
+    s+=`<path d="${arcPath(cx,cy,R,lo,hi)}" fill="none" stroke="#0d7377" stroke-width="3.4"/>`;
+    [[lo,'#0d7377'],[hi,'#0d7377']].forEach(([t,col])=>{
+      const [x2,y2]=P(cx,cy,R,t);
+      s+=`<line x1="${cx}" y1="${cy}" x2="${fmt(x2)}" y2="${fmt(y2)}" stroke="${col}" stroke-width="3"/>`;
+      const [lx,ly]=P(cx,cy,R+30,t);
+      s+=`<text x="${fmt(lx)}" y="${fmt(ly)}" font-size="12" fill="${col}" font-weight="800" text-anchor="middle">${Math.abs(t)}°</text>`;
+    });
+    s+=`<text x="${w-8}" y="${h-8}" font-size="12" fill="#0d7377" font-weight="800" text-anchor="end">가동범위 ${Math.abs(hi-lo)}°</text>`;
+  }
+  // 0° 기준선
+  const [zx,zy]=P(cx,cy,R+2,0);
+  s+=`<line x1="${cx}" y1="${cy}" x2="${fmt(zx)}" y2="${fmt(zy)}" stroke="#12314f" stroke-width="2.6" stroke-dasharray="6 4"/>`;
+  s+=`<text x="8" y="${h-8}" font-size="11.5" fill="#12314f" font-weight="800">┊ 0° 중립 (neutral zero)</text>`;
+  // 방향 라벨
+  s+=`<circle cx="${cx}" cy="${cy}" r="5" fill="#12314f"/>`;
+  s+=`</svg>`;
+  return `<div class="figwrap">${s}<div class="leg" style="justify-content:space-between">
+    <span><b style="color:#12314f">◀ 첫 숫자</b> 신전·외전·외회전·회외·좌측</span>
+    <span><b style="color:#12314f">셋째 숫자 ▶</b> 굴곡·내전·내회전·회내·우측</span></div></div>`;
+}
+const PRESETS=[
+ ['정상 무릎','S',0,0,135,'normal','슬관절이 완전히 펴지고(0°) 135°까지 굽는 정상 상태'],
+ ['정상 주관절(과신전 10°)','S',10,0,150,'normal','첫 숫자 10 = 0°를 지나 반대 방향으로 10° 더 젖혀짐 = <b>과신전</b>'],
+ ['무릎 굴곡구축 10°, 굴곡 120°','S',0,10,120,'normal','0°에 <b>도달하지 못하므로</b> 첫 숫자는 0, 가운데가 실제 시작위치 10°'],
+ ['주관절 신전지연 30°, 굴곡 90°','S',0,30,90,'normal','AMA Guides 5판 부록 원문 예시 — <code>S: 0-30-90</code>'],
+ ['손목 20° 신전위 강직','S',20,0,0,'ankyl','숫자 <b>2개</b>로 기록: <code>Wrist (S): 20-0</code> (AMA 원문 예시)'],
+ ['손목 20° 굴곡위 강직','S',0,0,20,'ankyl','<code>Wrist (S): 0-20</code> (AMA 원문 예시)'],
+ ['무릎 30° 굴곡위 강직','S',0,0,30,'ankyl','굴곡은 0의 오른쪽 → <code>Knee (S): 0-30</code>'],
+ ['정상 고관절 시상면','S',15,0,125,'normal','신전 15° / 굴곡 125°'],
+ ['정상 견관절 전두면','F',170,0,0,'normal','외전 170°, 순수 전두면 내전은 체간에 막혀 <b>0</b> — 몸 앞을 가로지르는 내전은 <b>T(수평면)</b>에 기록'],
+ ['첨족(equinus) 15°','S',0,15,30,'normal','배굴이 0°에 못 미치고 15° 족저굴곡위에서 시작, 30°까지 저굴']
+];
+
+/* --- SFTR 평면 도해 --- */
+function planesFig(){
+  const w=340,h=278;
+  let g=`<svg viewBox="0 0 ${w} ${h}"><rect width="${w}" height="${h}" fill="#fbfdff"/>`;
+  // 전두면 (화면 평면)
+  g+=`<rect x="54" y="36" width="228" height="206" fill="#12314f" opacity=".09" stroke="#12314f" stroke-width="1.4" stroke-dasharray="5 4"/>`;
+  // 인체 도식 (정면) — 평면이 몸을 '자르고' 지나가도록 먼저 그린다
+  const B='#8ea2b4';
+  g+=`<g stroke="${B}" stroke-linecap="round" fill="none">
+      <circle cx="168" cy="66" r="15" fill="${B}" stroke="none"/>
+      <rect x="150" y="86" width="36" height="74" rx="13" fill="${B}" stroke="none"/>
+      <line x1="154" y1="96" x2="128" y2="150" stroke-width="10"/>
+      <line x1="182" y1="96" x2="208" y2="150" stroke-width="10"/>
+      <line x1="160" y1="158" x2="152" y2="228" stroke-width="11"/>
+      <line x1="176" y1="158" x2="184" y2="228" stroke-width="11"/></g>`;
+  // 수평면 (허리 높이, 깊이 방향으로 기울임)
+  g+=`<polygon points="50,166 280,166 336,132 106,132" fill="#b45309" opacity=".26" stroke="#b45309" stroke-width="1.4" stroke-dasharray="5 4"/>`;
+  // 시상면 (정중면, 앞뒤 방향)
+  g+=`<polygon points="168,42 224,8 224,208 168,242" fill="#0d7377" opacity=".24" stroke="#0d7377" stroke-width="1.4" stroke-dasharray="5 4"/>`;
+  // 평면 문자
+  g+=`<text x="60" y="30" font-size="16" font-weight="800" fill="#12314f">F</text>`;
+  g+=`<text x="76" y="30" font-size="10.5" font-weight="700" fill="#12314f">전두면 (Frontal)</text>`;
+  g+=`<text x="228" y="18" font-size="16" font-weight="800" fill="#0d7377">S</text>`;
+  g+=`<text x="244" y="18" font-size="10.5" font-weight="700" fill="#0d7377">시상면</text>`;
+  g+=`<text x="334" y="132" font-size="16" font-weight="800" fill="#b45309" text-anchor="end">T</text>`;
+  g+=`<text x="312" y="132" font-size="10.5" font-weight="700" fill="#b45309" text-anchor="end">수평면</text>`;
+  g+=`<text x="8" y="256" font-size="10" fill="#5b6b7c">세 평면은 <tspan font-weight="800">해부학적 자세(모든 관절 0°)</tspan>에서 정의된다.</text>`;
+  g+=`<text x="8" y="268" font-size="10" fill="#5b6b7c">자세가 바뀌면 평면도 함께 돌기 때문에 <tspan font-weight="800">측정 자세를 반드시 기록</tspan>해야 한다.</text>`;
+  g+=`</svg>`;
+  return `<div class="figwrap">${g}<div class="leg" style="display:block;line-height:1.7">
+    <div><b style="color:#0d7377">S 시상면</b> — 굴곡 / 신전 (몸을 좌·우로 가르는 면 안에서의 앞뒤 운동)</div>
+    <div><b style="color:#12314f">F 전두면</b> — 외전 / 내전, 거상 / 하강, 요측·척측 편위, 측방굴곡</div>
+    <div><b style="color:#b45309">T 수평면</b> — 견관절 수평신전 / 수평굴곡, 고관절 수평외전 / 수평내전(90° 굴곡위)</div>
+    </div></div>`;
+}
+/* --- R(회전) 도해 --- */
+function rotationFig(){
+  const w=340,h=176;
+  let g=`<svg viewBox="0 0 ${w} ${h}"><rect width="${w}" height="${h}" fill="#fbfdff"/>`;
+  // 장축(회전축)
+  g+=`<line x1="96" y1="18" x2="96" y2="162" stroke="#12314f" stroke-width="2" stroke-dasharray="7 4"/>`;
+  g+=`<text x="104" y="26" font-size="10.5" fill="#12314f" font-weight="800">장축 = 회전축</text>`;
+  // 뼈(분절)
+  g+=`<line x1="96" y1="40" x2="96" y2="140" stroke="#8ea2b4" stroke-width="20" stroke-linecap="round"/>`;
+  // 회전 화살표 2개
+  [62,110].forEach(cy=>{
+    g+=`<path d="M 60 ${cy} A 36 12 0 1 1 132 ${cy}" fill="none" stroke="#0d7377" stroke-width="2.6"/>`;
+    g+=`<path d="M 60 ${cy} A 36 12 0 0 0 132 ${cy}" fill="none" stroke="#0d7377" stroke-width="2.6" opacity=".28"/>`;
+    g+=`<polygon points="132,${cy} 123,${cy-6} 124,${cy+6}" fill="#0d7377"/>`;
+  });
+  g+=`<text x="146" y="60" font-size="11.5" fill="#0d7377" font-weight="800">외회전 ↔ 내회전</text>`;
+  g+=`<text x="146" y="78" font-size="10.5" fill="#5b6b7c">회외 ↔ 회내</text>`;
+  g+=`<text x="146" y="94" font-size="10.5" fill="#5b6b7c">척추 회전</text>`;
+  g+=`<text x="146" y="122" font-size="10.5" fill="#b45309" font-weight="800">R은 “회전면”이 아니다</text>`;
+  g+=`<text x="146" y="138" font-size="10" fill="#5b6b7c">축 둘레의 운동이라 여러 평면을</text>`;
+  g+=`<text x="146" y="152" font-size="10" fill="#5b6b7c">가로지르므로 <tspan font-weight="800">별도 범주</tspan>로 기록</text>`;
+  g+=`</svg>`;
+  return `<div class="figwrap">${g}<div class="leg">
+    <span>회전은 <b>내회전과 외회전의 중간</b>(또는 회내·회외의 중간)을 0°로 잡는다</span></div></div>`;
+}
+
+document.getElementById('s-notation').innerHTML=`
+<div class="card">
+  <h2 class="st">① Neutral-Zero Method (중립영점법)</h2>
+  <div class="tw"><table>
+    <tr><th style="width:62px">연도</th><th>사건</th></tr>
+    <tr><td>1936</td><td>Cave EF, Roberts SM. <i>A method for measuring and recording joint function.</i> JBJS — <b>중립영점 개념의 원전</b></td></tr>
+    <tr><td>1957–58</td><td>Chapchal(독일) 체계화 · Zollinger(스위스 SUVA) 표준화 지침</td></tr>
+    <tr class="hl"><td><b>1965</b></td><td><b>AAOS. <i>Joint Motion: Method of Measuring and Recording.</i></b> 미국 표준으로 채택</td></tr>
+    <tr><td>1971</td><td>Debrunner. <i>Gelenkmessung (Neutral-0-Methode)</i> — AO 계열</td></tr>
+    <tr><td>1975</td><td>Gerhardt &amp; Russe. <b>International SFTR Method</b> (= ISOM)</td></tr>
+    <tr><td>2001</td><td><b>AMA Guides 5판 부록</b>이 SFTR을 공식 수록 <span class="chip c-grn">확인</span></td></tr>
+  </table></div>
+  <div class="box good"><b>정의 원칙</b>
+  해부학적 자세(직립, 상지는 몸 옆, 엄지 전방, 양발 평행)를 <b>0°</b>로 하고 모든 운동을 0에서 멀어지는 방향으로 측정.
+  <b>회전은 내회전과 외회전(또는 회내·회외)의 중간</b>을 0°로 한다.
+  <span class="evid">[AMA Guides 5th ed, Appendix]</span></div>
+  <div class="box crit"><b>⚠ 이 방법의 존재 이유 — 딱 하나만 기억하면</b>
+  <code style="font-size:14px"><b>10-0-150</b></code>(과신전 10°)과 <code style="font-size:14px"><b>0-10-150</b></code>(신전제한 10°)은
+  <b>완전히 다른 상태</b>입니다. "10도"라고만 적으면 이 둘이 구분되지 않습니다.<br>
+  <b>가운데 숫자가 0이 아니면 = 중립위에 도달하지 못한다</b>는 뜻이고, 그 숫자가 이 환자의 실제 시작 위치입니다.</div>
+</div>
+
+<div class="card">
+  <h2 class="st">② SFTR — 4개 문자와 3개 숫자</h2>
+  ${planesFig()}
+  ${rotationFig()}
+  <div class="tw"><table>
+    <tr><th style="width:44px">문자</th><th style="width:88px">평면</th><th>배정 운동 (AMA 5판 부록 원문)</th></tr>
+    <tr><td class="c"><b>S</b></td><td>Sagittal<br>시상면</td><td>신전 / 굴곡</td></tr>
+    <tr><td class="c"><b>F</b></td><td>Frontal<br>전두면</td><td>외전 / 내전, 거상 / 하강, 요측·척측 편위, 측방굴곡</td></tr>
+    <tr><td class="c"><b>T</b></td><td>Transverse<br>수평면</td><td>견관절 수평신전 / 수평굴곡, 고관절 수평외전 / 수평내전(고관절 90° 굴곡위)</td></tr>
+    <tr><td class="c"><b>R</b></td><td>Rotation<br>회전</td><td>외회전 / 내회전, 회외 / 회내, 척추 회전</td></tr>
+  </table></div>
+  <div class="box info"><b>흔한 오해</b> — R은 "회전면"이 아닙니다. AMA 원문은 <i>"Rotation (R) <b>crosses multiple planes</b> and receives a separate recording"</i>
+  — 여러 평면을 가로지르는 운동의 <b>별도 범주</b>입니다.</div>
+
+  <h3 class="sst">3-숫자 순서 규칙 (AMA 5판 부록 원문)</h3>
+  <div class="box good" style="line-height:1.75">
+    <b>[ 몸에서 멀어지는 방향 ] – [ 시작(기준) 위치, 정상은 0 ] – [ 몸을 향하는 방향 ]</b><br>
+    · <b>첫 숫자</b> = 신전 · 외전 · 외회전 · 회외 · 외번 · 외반 · <b>좌측</b> 측굴/회전<br>
+    · <b>가운데</b> = 기준 위치 (정상 0°)<br>
+    · <b>셋째 숫자</b> = 굴곡 · 내전 · 내회전 · 회내 · 내번 · 내반 · <b>우측</b> 측굴/회전
+  </div>
+  <p class="mute">기호(°)는 붙이지 않고 <code>10-0-130</code> 또는 <code>10/0/130</code>으로 씁니다.</p>
+
+  <h3 class="sst">회전 측정 자세 한정자</h3>
+  <div class="tw"><table>
+    <tr><th style="width:80px">표기</th><th>의미</th></tr>
+    <tr><td><code>R(F0)</code></td><td>견관절 회전을 <b>외전 0°(팔을 몸 옆)</b>에서 측정</td></tr>
+    <tr class="hl"><td><code>R(F90)</code></td><td>견관절 회전을 <b>전두면 90° 외전</b>에서 측정</td></tr>
+    <tr><td><code>R(S90)</code></td><td>고관절 회전을 <b>시상면 90° 굴곡위</b>(앉은 자세)에서 측정</td></tr>
+    <tr><td><code>R(S0)</code></td><td>고관절 회전을 <b>신전위(복와위)</b>에서 측정</td></tr>
+  </table></div>
+  <div class="box warn"><b><span class="chip c-amb">불일치</span> 한정자 표기의 활자 형식</b>
+  AMA 5판 부록은 <i>"hip horizontal abduction and adduction (hip flexed at 90°)"</i>처럼 <b>괄호 안에 자세를 서술</b>할 뿐,
+  <code>R(F90)</code> 형식의 축약 표기는 나타나지 않습니다. 이 축약형은 2차 자료 1개에서만 확인되었습니다.
+  <b>다만 자세를 반드시 병기해야 한다는 원칙 자체는 이견이 없습니다</b> — 어깨 외회전은 외전 0°와 90°에서 값이 크게 다르고,
+  고관절 회전도 굴곡위/신전위에서 다릅니다.</div>
+</div>
+
+<div class="card">
+  <h2 class="st">③ 표기 시뮬레이터 <span class="pill">직접 입력해 보십시오</span></h2>
+  <div class="ctrl">
+    <label>평면</label>
+    <select id="nPlane"><option>S</option><option>F</option><option>T</option><option>R</option></select>
+    <label>첫</label><input type="number" id="nA" value="0" step="5">
+    <label>가운데</label><input type="number" id="nB" value="0" step="5">
+    <label>셋째</label><input type="number" id="nC" value="135" step="5">
+    <button class="btn alt" id="nAnk">강직 모드 ⟳</button>
+  </div>
+  <div id="nOut"></div>
+  <div class="presets" id="nPre"></div>
+</div>
+
+<div class="card">
+  <h2 class="st">④ 상태별 표기 — 세 전통의 차이</h2>
+  <div class="box crit"><b>⚠ 전공의가 가장 많이 틀리는 지점: 강직(ankylosis) 표기</b>
+  <b>SFTR/AMA는 숫자 2개</b>, <b>독일 Neutral-0-Methode는 숫자 3개(고정각을 두 번 반복)</b>로 씁니다.
+  두 전통이 지금도 공존하므로 <b>기관 내에서 하나를 정하고 명시</b>해야 합니다.</div>
+  <div class="tw"><table>
+    <tr><th>상황</th><th>SFTR / AMA</th><th>독일 NNM</th></tr>
+    <tr><td>정상 무릎</td><td><code>S 0-0-135</code></td><td><code>0/0/135</code></td></tr>
+    <tr><td>무릎 굴곡 120°만 (0° 도달 가능)</td><td><code>S 0-0-120</code></td><td><code>0/0/120</code></td></tr>
+    <tr class="hl"><td><b>무릎 굴곡구축 10°</b> + 굴곡 120°</td><td><code>S 0-10-120</code></td><td><code>0/10/120</code></td></tr>
+    <tr><td>주관절 신전지연 30° + 굴곡 90°</td><td><code>S 0-30-90</code> <span class="chip c-grn">AMA 원문</span></td><td><code>0/30/90</code></td></tr>
+    <tr><td>주관절 과신전 10° + 굴곡 150°</td><td><code>S 10-0-150</code></td><td><code>10/0/150</code></td></tr>
+    <tr><td>손목 20° <b>신전위</b> 강직</td><td><code>Wrist (S): 20-0</code> <span class="chip c-grn">AMA 원문</span></td><td>—</td></tr>
+    <tr><td>손목 20° <b>굴곡위</b> 강직</td><td><code>Wrist (S): 0-20</code> <span class="chip c-grn">AMA 원문</span></td><td>—</td></tr>
+    <tr class="hl"><td><b>무릎 30° 굴곡위 강직</b></td><td><code>Knee (S): 0-30</code></td><td><code>0/30/30</code></td></tr>
+    <tr><td>20° 외반 고정변형</td><td><code>F 20-0</code></td><td>—</td></tr>
+    <tr><td>40° hallux valgus</td><td><code>T 40-0</code></td><td>—</td></tr>
+  </table></div>
+  <div class="box warn"><b><span class="chip c-amb">불일치</span> 숫자 순서 자체가 다른 교과서가 있습니다</b>
+  독일어권 일부 교과서는 여전히 <b>굴곡을 먼저</b> 쓰는 순서를 가르치며(예: 20° 굴곡 강직을 <code>Beugung/Streckung 20/20/0</code>),
+  독일 문헌 스스로 <i>"숫자 순서를 다르게 가르치는 교과서가 아직 있다"</i>고 경고합니다.
+  <b>측정 순서와 방향을 반드시 함께 명시</b>하십시오.</div>
+  <div class="box info"><b>SFTR 비판도 알아둘 것</b> — Schwarz 등(Acta Chir Austriaca 2000)은 근위 상완골 골절 67예를 분석한 뒤
+  <i>"SFTR법은 어깨에서 임상적 실용성 기준을 충족하지 못하며 여러 결함이 있다"</i>고 결론하고,
+  elevation / 외회전 / 내회전 / glenohumeral abduction 4개 측정으로 대체할 것을 제안했습니다. SFTR은 만능이 아닙니다.</div>
+</div>
+
+<div class="card">
+  <h2 class="st">⑤ AMA Guides — ROM의 지위가 판(edition)마다 다르다</h2>
+  <div class="box crit"><b>⚠ 흔한 오류: "AMA 6판의 척추 inclinometer 요건"은 존재하지 않습니다</b>
+  AMA 6판 Chapter 17은 <b>척추에서 ROM을 완전히 폐지</b>했습니다.<br>
+  <i>"Current evidence does not support range of motion as a reliable indicator of specific pathology or permanent functional status;
+  therefore motion is no longer used as a basis for defining impairment."</i> <span class="chip c-grn">확인</span><br>
+  이중 경사계·천추 보정·SLR 타당성 검증은 <b>AMA 5판(및 4판)</b>의 요건입니다.
+  국내 장해평가가 여전히 5판 계열을 쓰는 이유이기도 합니다.</div>
+  <div class="tw"><table>
+    <tr><th style="width:82px">판</th><th>사지</th><th>척추</th></tr>
+    <tr><td><b>5판</b><br>(2001)</td><td>ROM method 사용. 부록에 <b>SFTR 표기 공식 수록</b></td><td><b>ROM method 사용</b> — 이중 경사계 필수</td></tr>
+    <tr class="hl"><td><b>6판</b><br>(2008~)</td><td>ROM은 <b>원칙적으로 신체검사 조정인자(grade modifier)</b>.
+      달리 판정 불가능한 <b>드문 경우에만</b> 장해값 산정에 단독 사용하며, 그 이유를 문서화해야 함.
+      <b>다른 방법과 병합(combine) 불가</b>(절단 예외)</td><td><b>ROM 폐지</b> — 진단기반장해(DBI) 격자 사용</td></tr>
+  </table></div>
+  <h3 class="sst">AMA 5판 척추 ROM 타당성 규칙 <span class="chip c-grn">확인</span></h3>
+  <div class="tw"><table>
+    <tr><td style="width:96px"><b>기구</b></td><td>경사계(inclinometer) 필수</td></tr>
+    <tr><td><b>반복</b></td><td><b>연속 3회</b> 측정하여 평균. 기준 충족까지 <b>최대 6회</b>까지 반복 가능</td></tr>
+    <tr class="hl"><td><b>일관성</b></td><td>평균 &lt;50° → 3회가 평균 <b>±5° 이내</b> / 평균 &gt;50° → 평균의 <b>±10% 이내</b></td></tr>
+    <tr><td><b>SLR 타당도</b></td><td>가장 뻣뻣한 SLR이 <b>천추 굴곡+신전의 합보다 15° 초과</b>하면 요추 굴곡·신전 측정은 <b>무효</b></td></tr>
+  </table></div>
+  <p class="mute">※ 관할권 변형 주의 — 미국 콜로라도주 공식 워크시트는 같은 SLR 검사식을 쓰되 임계값이 <b>10°</b>, 무효화에 <b>서로 다른 2일에 각 3회씩 총 12회</b>를 요구합니다.</p>
+  <h3 class="sst">AMA 6판 사지 — 절대 각도가 아니라 "정상 대비 %" <span class="chip c-grn">확인</span></h3>
+  <div class="tw"><table>
+    <tr><th class="c">Mild</th><th class="c">Moderate</th><th class="c">Severe</th><th class="c">Very severe</th></tr>
+    <tr><td class="c">정상의 <b>60–90%</b></td><td class="c"><b>30–60%</b></td><td class="c"><b>&lt;30%</b></td><td class="c"><b>강직</b></td></tr>
+  </table></div>
+  <div class="box warn"><b><span class="chip c-red">미확인</span></b> AMA 6판 §15.7 / §16.24의 정확한 반복측정 횟수·도 단위 일관성 임계값,
+  그리고 Table 15-31~15-36 · 16-25의 실제 각도 수치는 <b>원전 접근 실패</b>로 확인하지 못했습니다.
+  교육자료·감정서에 수치를 넣으실 때는 반드시 원전 대조가 필요합니다.</div>
+</div>
+
+<div class="card">
+  <h2 class="st">⑥ 국내 실무 — SFTR을 쓰지 않는다</h2>
+  <div class="box crit"><b>⚠ 핵심</b>
+  국내 공적 기준(국민연금·산재)은 <b>SFTR식 3-숫자 표기를 규정하지 않습니다.</b>
+  대신 <b>① 방향별 각도를 나열하고 ② 정상 표준각도 "합계" 대비 비율</b>로 판정합니다.
+  국제 문헌의 SFTR 표기와 국내 서식은 <b>다른 언어</b>입니다.</div>
+  <h3 class="sst">국민연금 「신체장애 운동범위 측정기준」 원문 <span class="chip c-grn">확인</span></h3>
+  <div class="tw"><table>
+    <tr><td style="width:100px"><b>중립위</b></td><td>"운동을 시작하는 <b>중립위를 0도로 기준</b>한다"</td></tr>
+    <tr><td><b>굴곡구축</b></td><td>"기술된 중립위치를 취할 수 없는 경우에는 <b>그 할 수 없는 만큼의 각도를 기록</b>한다(굴곡구축)"</td></tr>
+    <tr><td><b>강직</b></td><td>"강직상태를 측정할 때에는 <b>지정된 중립위치로부터의 편차</b>를 측정한다"</td></tr>
+    <tr class="hl"><td><b>능동/수동</b></td><td>"운동기능장애는 <b>원칙적으로 수동운동</b>에 의한 운동가능범위를 적용한다" /
+      신경마비 등에서는 "수동운동은 고려하지 아니하고 <b>능동운동의 각도를 측정</b>한다"</td></tr>
+    <tr><td><b>합산 판정</b></td><td>어깨 "위에서 측정한 <b>6방향의 각도를 합산하여 정상과 비교</b>한다" / 손목 "4방향의 각도를 합산"</td></tr>
+    <tr><td><b>꾀병 감별</b></td><td>"협동운동을 이용하여 피측정자의 주의를 손상 관절로부터 멀리하고 측정하는 방법"</td></tr>
+  </table></div>
+  <div class="box info"><b>합산 기준 표준각도</b>
+  어깨 <b>500°</b>(굴150+신40+외전150+내전30+내회전40+외회전90) · 팔꿈치 310° · 손목 180° · 무릎 150° · 발목 110° · 경추 340° · 흉요추 240°
+  <span class="chip c-grn">확인</span></div>
+  <h3 class="sst">산재 시행규칙 [별표 5] — 제한 분율 기준 <span class="chip c-grn">확인</span></h3>
+  <div class="tw"><table>
+    <tr><th>운동가능영역 제한</th><th>판정</th></tr>
+    <tr><td>완전강직 또는 <b>3/4 이상</b> 제한</td><td>"관절을 제대로 못쓰게 된 사람"</td></tr>
+    <tr><td><b>1/2 이상</b> 제한</td><td>"관절의 기능에 뚜렷한 장해가 남은 사람"</td></tr>
+    <tr><td><b>1/4 이상</b> 제한</td><td>"관절의 기능에 장해가 남은 사람"</td></tr>
+  </table></div>
+  <div class="box warn"><b>맥브라이드(McBride) 및 대한의학회 기준</b>
+  · 맥브라이드표는 1936년 미국 기준으로, 15개 대항목 중 <b>"② 관절강직(9개 관절별 세분)"</b>이 별도 항목입니다.
+  각도를 3-숫자로 적지 않고 세목에 대응시켜 <b>노동능력상실률(%)</b>을 읽는 방식입니다.
+  법원행정처 스스로 "1950년대 미국 기준이어서 시대에 뒤떨어져 있다"고 지적했고,
+  서울중앙지법은 "대한의학회 기준이 마련된 지금 낡은 맥브라이드를 계속 붙들 이유가 없다"고 판시했습니다.<br>
+  · <b>대한의학회 장애평가기준(2016)</b>은 <b>AMA Guides 5판을 기본 모형</b>으로 개발되었습니다.
+  <span class="chip c-red">미확인</span> 다만 본서의 ROM 측정 조항(측정 횟수·일관성·강직 표기)은 온라인 미공개로 확인하지 못했습니다 — 본서 직접 확인 필요.</div>
+</div>
+`;
+(function(){
+  const A=document.getElementById('nA'),B=document.getElementById('nB'),C=document.getElementById('nC'),
+        PL=document.getElementById('nPlane'),OUT=document.getElementById('nOut'),ANK=document.getElementById('nAnk');
+  let mode='normal', note='';
+  function render(){
+    const a=+A.value||0,b=+B.value||0,c=+C.value||0,p=PL.value;
+    let code, desc;
+    if(mode==='ankyl'){
+      const ang=a>0?a:c;
+      code=`${p} ${a>0?ang+'-0':'0-'+ang}`;
+      desc=`<b>강직 표기</b> — SFTR/AMA는 숫자 <b>2개</b>로 적습니다. 0을 기준으로 ${a>0?'왼쪽(신전·외전·외회전) 방향':'오른쪽(굴곡·내전·내회전) 방향'} ${ang}° 위치에 고정.`;
+    }else{
+      code=`${p} ${a}-${b}-${c}`;
+      if(b>0) desc=`<b>가운데 숫자가 0이 아님</b> → 중립위(0°)에 <b>도달하지 못함</b>. ${b}°가 이 환자의 실제 시작 위치이고, 그쪽 방향의 첫 숫자는 반드시 0이 됩니다. 총 가동범위 <b>${Math.abs(c>0?c-b:b-a)}°</b>.`;
+      else if(a>0&&c>0) desc=`0°를 <b>통과</b>합니다. 첫 숫자 ${a}°는 0을 지나 반대 방향으로 더 간다는 뜻(과신전·과외전). 총 가동범위 <b>${a+c}°</b>.`;
+      else desc=`0°에서 시작해 한 방향으로만 <b>${a+c}°</b>. (예: 순수 전두면 내전이 0인 견관절 F 표기)`;
+    }
+    OUT.innerHTML=`<div class="sftrbox" style="font-size:17px;text-align:center"><span class="k">${code}</span></div>
+      ${notationSVG(a,b,c,mode)}
+      <div class="box ${mode==='ankyl'?'crit':(b>0?'warn':'good')}">${desc}${note?'<br><br>'+note:''}</div>`;
+  }
+  [A,B,C,PL].forEach(el=>el.addEventListener('input',()=>{note='';render()}));
+  ANK.addEventListener('click',()=>{mode=mode==='ankyl'?'normal':'ankyl';note='';
+    ANK.textContent=mode==='ankyl'?'강직 모드 ✔ (해제)':'강직 모드 ⟳';
+    ANK.style.background=mode==='ankyl'?'#b91c1c':'';ANK.style.color=mode==='ankyl'?'#fff':'';render();});
+  document.getElementById('nPre').innerHTML=PRESETS.map((p,i)=>`<button data-i="${i}">${p[0]}</button>`).join('');
+  document.getElementById('nPre').addEventListener('click',e=>{
+    const b=e.target.closest('button'); if(!b)return;
+    const p=PRESETS[+b.dataset.i];
+    PL.value=p[1];A.value=p[2];B.value=p[3];C.value=p[4];
+    mode=p[5];ANK.textContent=mode==='ankyl'?'강직 모드 ✔ (해제)':'강직 모드 ⟳';
+    ANK.style.background=mode==='ankyl'?'#b91c1c':'';ANK.style.color=mode==='ankyl'?'#fff':'';
+    note=p[6];render();
+  });
+  render();
+})();
+</script>
+<script>
+/* ===== 관절 데이터 & 렌더러 ===== */
+function renderMotion(m){
+  return `<div class="acc">
+    <div class="hd"><span>${m.n}</span><span class="rg">${m.nrm}</span></div>
+    <div class="bd">
+      ${m.fig?fig(m.fig):''}
+      <div class="sftrbox">SFTR 예시 &nbsp;<span class="k">${m.sftr}</span></div>
+      <dl class="tech">
+        <dt>ⓐ 환자 자세</dt><dd>${m.pos}</dd>
+        <dt>ⓑ 고정 (stabilization)</dt><dd>${m.stab}</dd>
+        <dt>ⓒ 축 (axis / fulcrum)</dt><dd>${m.axis}</dd>
+        <dt>ⓓ 고정팔</dt><dd>${m.fx}</dd>
+        <dt>ⓔ 이동팔</dt><dd>${m.mv}</dd>
+        <dt>ⓕ 정상 종말감</dt><dd>${m.ef}</dd>
+      </dl>
+      <div class="box crit" style="margin-top:12px"><b>⚠ 가장 흔한 대상작용·오류</b>${m.er}</div>
+      ${m.extra||''}
+    </div></div>`;
+}
+function renderGroup(g){
+  return `<div class="card"><h2 class="st">${g.t}</h2>${g.d?`<p class="mute" style="margin-top:-4px">${g.d}</p>`:''}
+    ${g.pre||''}${g.m.map(renderMotion).join('')}${g.post||''}</div>`;
+}
+
+/* ---------- 상지 ---------- */
+const UE=[
+{t:'견관절 (Shoulder)', d:'모든 오류의 근원은 <b>견갑골과 체간의 대상작용</b>입니다. 흉곽·견갑골 고정이 절반입니다.',
+ pre:`<div class="box info"><b>관절낭 패턴</b> 외회전 &gt; 외전 &gt; 내회전 순으로 제한 → 유착성 관절낭염.
+ <b>외전 시에는 반드시 외회전</b>시켜야 대결절이 견봉 아래를 통과합니다(안 하면 충돌로 ROM이 거짓 감소).</div>`,
+ m:[
+ {n:'굴곡 (Flexion)', nrm:'AAOS 0–180°', sftr:'S 60-0-180',
+  fig:{jx:150,jy:88,ground:0,
+    segs:[{t:180,len:105,wd:22,label:'체간',dx:-16},{t:58,len:78,wd:16}],
+    fix:{t:180,len:112,label:'중액와선',lo:22,anchor:'middle'},
+    mov:{t:58,len:96,label:'상완 외측 정중선',lo:26},
+    arc:{from:180,to:58,r:52,label:'굴곡'},
+    axisLabel:'대결절 외측',alx:-6,aly:-13,
+    notes:[{x:8,y:18,text:'앙와위 (측면에서 본 모습)',w:700,fill:'#12314f'},
+           {x:8,y:34,text:'무릎 약간 굴곡 → 요추 전만 소실'},
+           {x:8,y:236,text:'전완 중립(손바닥 내측)'}]},
+  pos:'<b>앙와위</b>, 무릎 약간 굴곡(요추 전만 소실), 상지는 몸통 옆, 전완 중립(손바닥 내측)',
+  stab:'<b>흉곽</b>(척추 신전 방지) + <b>견갑골 상부</b>(거상·상방회전 방지)',
+  axis:'상완골 <b>대결절 외측</b> <span class="chip c-amb">불일치</span> 문헌에 따라 "견봉 외측", "상완골두 중앙(견봉 2–3 cm 하방)"으로도 기재 — 사실상 같은 지점이나 기관 내 통일 필요',
+  fx:'흉곽의 <b>중액와선</b>과 평행',
+  mv:'상완골 <b>외측 정중선</b> → 원위 기준 <b>외측상과</b>',
+  ef:'<b>Firm</b> — 후방 관절낭, 오구상완인대 후방섬유, 대원근·광배근 긴장',
+  er:'<b>요추 신전 + 견갑골 거상.</b> "환자가 견갑골을 올리거나 요추를 젖혀 몇 도를 더 얻으면 그 측정치는 더 이상 진짜 관절와상완 운동이 아닙니다." → 무릎 굴곡 + 검사자 손으로 흉곽 고정'},
+ {n:'신전 (Extension)', nrm:'AAOS 0–60°', sftr:'S 60-0-180',
+  fig:{jx:170,jy:88,
+    segs:[{t:180,len:105,wd:22,label:'체간',dx:16},{t:212,len:76,wd:16}],
+    fix:{t:180,len:112,label:'중액와선',lo:22},
+    mov:{t:212,len:94,label:'상완 외측 정중선',lo:30},
+    arc:{from:180,to:212,r:56,label:'신전'},
+    axisLabel:'대결절 외측',alx:8,aly:-13,
+    notes:[{x:8,y:18,text:'복와위 (측면에서 본 모습)',w:700,fill:'#12314f'},
+           {x:8,y:34,text:'이마 밑 작은 베개'}]},
+  pos:'<b>복와위</b>, 상지 몸통 옆, 이마 밑 작은 베개',
+  stab:'<b>견갑골 후면</b> — 전방경사(anterior tilting)·winging 방지. 견갑골 하각 또는 견봉/오구돌기를 고정',
+  axis:'대결절 외측 (굴곡과 동일)',
+  fx:'흉곽의 중액와선과 평행',
+  mv:'상완골 외측 정중선 → 외측상과',
+  ef:'<b>Firm</b> — 전방 관절낭, 오구상완인대 전방섬유, 전삼각근 긴장',
+  er:'<b>몸통 굴곡 + 견갑골 전방경사/거상.</b> 견갑골이 앞으로 기울면 상완은 실제보다 훨씬 뒤로 간 것처럼 보입니다'},
+ {n:'외전 (Abduction)', nrm:'AAOS 0–180° (GH 단독 ~90–120°)', sftr:'F 180-0-0',
+  fig:{jx:158,jy:80,
+    segs:[{t:180,len:110,wd:24,label:'체간',dx:-18},{t:118,len:80,wd:16}],
+    fix:{t:180,len:118,label:'흉골 정중선',lo:22},
+    mov:{t:118,len:98,label:'상완 전면 정중선',lo:26},
+    arc:{from:180,to:118,r:54,label:'외전'},
+    axisLabel:'견봉 전면',alx:-4,aly:-13,
+    notes:[{x:8,y:18,text:'앙와위 (정면에서 본 모습)',w:700,fill:'#12314f'},
+           {x:8,y:34,text:'★ 견관절 외회전(손바닥 위) 필수',fill:'#b45309',w:800},
+           {x:8,y:236,text:'F의 셋째 숫자가 0인 이유: 순수 전두면 내전은 체간에 막힘'}]},
+  pos:'앙와위, <b>견관절 외회전(손바닥 위)</b> — 대결절이 견봉 아래를 통과하도록',
+  stab:'<b>흉곽</b>(반대측 체간 측방굴곡 방지) + <b>견갑골</b>(상방회전·거상 방지)',
+  axis:'<b>견봉의 전면</b> <span class="chip c-amb">불일치</span> Physiopedia는 "오구돌기 하외측", 다른 교재는 "오구돌기 1.5 cm 하방의 전방 GH 중점" — Norkin 표준은 견봉 전면',
+  fx:'<b>흉골 정중선</b>과 평행',
+  mv:'상완골 <b>전면 정중선</b>',
+  ef:'<b>Firm</b> — 하방 관절낭, 하부 관절상완인대',
+  er:'<b>반대측 체간 측방굴곡</b>이 압도적 1위, 다음이 견갑골 조기 거상. 그리고 <b>외회전을 시키지 않으면</b> 견봉하 충돌로 ROM이 거짓 감소합니다'},
+ {n:'내회전 (Internal rotation, 90° 외전)', nrm:'AAOS 0–70°', sftr:'R(F90) 90-0-70',
+  fig:{jx:150,jy:168,
+    segs:[{t:270,len:78,wd:18,label:'상완',dy:30},{t:34,len:76,wd:14}],
+    fix:{t:0,len:96,label:'바닥에 수직 (0°)',lo:16},
+    mov:{t:34,len:96,label:'척골 → 경상돌기',lo:20},
+    arc:{from:0,to:34,r:56,label:'내회전'},
+    axisLabel:'주두돌기',alx:-12,aly:20,alAnchor:'end',
+    notes:[{x:8,y:16,text:'앙와위 · 견관절 90° 외전 · 주관절 90° 굴곡',w:700,fill:'#12314f'},
+           {x:8,y:222,text:'★ 원위 상완 아래 수건롤 — 상완을 침대면과 수평 유지',fill:'#b45309',w:800},
+           {x:8,y:238,text:'전완이 침대와 수직인 상태 = 0°'}]},
+  pos:'앙와위, 견관절 <b>90° 외전</b>, 주관절 <b>90° 굴곡</b>, 전완이 침대와 수직 = 0°. <b>원위 상완 아래 수건롤</b>',
+  stab:'<b>원위 상완</b>(외전각 변화·상완골두 전방전위 방지) + <b>견갑골(오구돌기를 눌러 전방경사 차단)</b>',
+  axis:'<b>주두돌기(olecranon)</b> — 상완골 장축을 통과',
+  fx:'<b>바닥에 수직</b>',
+  mv:'<b>척골</b>을 따라 → 원위 기준 <b>척골 경상돌기</b>',
+  ef:'<b>Firm</b> — 후방 관절낭, 후방 회전근개(극하근·소원근) 긴장',
+  er:'<b>견갑골 전방경사/전인 + 흉곽 거상.</b> 부수적으로 주관절 신전, 외전각 소실. → 오구돌기를 눌러 고정',
+  extra:`<div class="box warn"><b>대안: 몸통 옆(at side, 외전 0°) 측정</b>
+   자세: 상지 내전, 주관절 90° 굴곡, 겨드랑이에 수건. 축 = 주두돌기, 고정팔 = 시상면 기준선, 이동팔 = 척골.<br>
+   <b>90° 외전 자세와 관절낭 긴장 패턴이 달라 값이 다르게 나옵니다. 두 값을 서로 비교하면 안 되며, 반드시 어느 자세인지 기록하십시오.</b>
+   <span class="chip c-red">미확인</span> AAOS·AMA 원전이 어느 자세를 규정하는지는 본 조사에서 확인하지 못했습니다.<br>
+   <span class="mute">기능적 대안인 hand-behind-back(엄지가 닿는 척추 분절)은 간편하나 견갑골·주관절·손목 움직임이 섞여 각도계 측정과 등가가 아닙니다.</span></div>`},
+ {n:'외회전 (External rotation, 90° 외전)', nrm:'AAOS 0–90°', sftr:'R(F90) 90-0-70',
+  fig:{jx:186,jy:168,
+    segs:[{t:270,len:78,wd:18,label:'상완',dy:16},{t:-56,len:76,wd:14}],
+    fix:{t:0,len:96,label:'바닥에 수직 (0°)',lo:16},
+    mov:{t:-56,len:96,label:'척골 → 경상돌기',lo:20},
+    arc:{from:0,to:-56,r:56,label:'외회전'},
+    axisLabel:'주두돌기',alx:12,aly:20,alAnchor:'start',
+    notes:[{x:8,y:16,text:'앙와위 · 견관절 90° 외전 · 주관절 90° 굴곡',w:700,fill:'#12314f'},
+           {x:8,y:238,text:'Cyriax가 든 대표적 capsular(elastic) end-feel'}]},
+  pos:'내회전과 동일 (앙와위, 90° 외전, 주관절 90° 굴곡, 수건롤)',
+  stab:'<b>원위 상완 — 타협 불가</b>. 추가로 흉곽 고정(요추 신전 방지)',
+  axis:'주두돌기',
+  fx:'바닥에 수직',
+  mv:'척골 → 척골 경상돌기',
+  ef:'<b>Firm</b> — 전방 관절낭, <b>하부 관절상완인대 전방대</b>, 견갑하근 긴장',
+  er:'<b>요추 신전(등을 침대에서 들어올림) + 견갑골 후인/하강.</b> 그리고 외전각이 무너지면서 값이 커짐'}
+]},
+{t:'주관절 · 전완 (Elbow / Forearm)', m:[
+ {n:'주관절 굴곡·신전', nrm:'AAOS 굴곡 150° / 신전 0°', sftr:'S 10-0-150 (과신전 10°)',
+  fig:{jx:150,jy:150,
+    segs:[{t:-72,len:96,wd:18},{t:32,len:88,wd:15,label:'전완(회외)',dx:26,dy:12}],
+    fix:{t:-72,len:112,label:'상완 외측 정중선 → 견봉',lo:14,anchor:'start'},
+    mov:{t:32,len:104,label:'요골 → 요골 경상돌기',lo:24},
+    arc:{from:108,to:32,r:52,label:'굴곡'},
+    axisLabel:'외측상과',alx:-12,aly:20,alAnchor:'end',
+    notes:[{x:8,y:18,text:'앙와위 또는 앉은 자세 · 전완 반드시 회외',w:700,fill:'#12314f'},
+           {x:8,y:236,text:'0° = 상완과 전완이 일직선'}]},
+  pos:'앙와위(또는 앉은 자세), 견관절 0° 굴곡·외전·신전, 상완을 몸통 가까이, <b>전완 회외</b>. 상완 밑에 수건',
+  stab:'<b>원위 상완</b> — 견관절 굴곡 대상작용 방지',
+  axis:'상완골 <b>외측상과</b> <span class="chip c-grn">3중 일치</span>',
+  fx:'상완골 <b>외측 정중선</b> → 근위 기준 <b>견봉</b>',
+  mv:'요골 <b>외측 정중선</b> → 원위 기준 <b>요골 경상돌기</b>',
+  ef:'굴곡 <b>Soft</b>(전완 굴근군과 이두근 근복 접촉) — 근위축 시 hard, 굴근 부피가 매우 크면 firm<br>신전 <b>Hard(골성)</b> — 주두돌기가 주두와에 충돌',
+  er:'① <b>기록 오류가 가장 흔합니다.</b> 굴곡구축을 "−10°"로 쓰지 말고 <b>"10–150°"</b> 또는 <b>S 0-10-150</b>으로.<br>② 견관절 굴곡(상완을 들어올림)으로 굴곡각을 부풀림.<br>③ <b>전완을 회내한 채 측정</b>하면 carrying angle 때문에 정렬이 왜곡됩니다 — 반드시 회외',
+  extra:`<div class="box warn"><b><span class="chip c-amb">불일치</span> 주관절 관절낭 패턴</b>
+   "굴곡=신전=회내=회외 균등 제한"이라는 기술과 Cyriax 고전의 "굴곡 &gt; 신전 제한"이 병존합니다.</div>`},
+ {n:'전완 회내 (Pronation)', nrm:'AAOS 0–80° (문헌 80–90°)', sftr:'R 80-0-80',
+  fig:{jx:160,jy:145,
+    segs:[{t:180,len:70,wd:20,label:'상완(체간 밀착)',dx:0,dy:16}],
+    fix:{t:0,len:88,label:'상완과 평행 (0°)',lo:20},
+    mov:{t:66,len:90,label:'전완 배측면을 가로질러',lo:30},
+    arc:{from:0,to:66,r:42,label:'회내'},
+    axisLabel:'척골 경상돌기 외측',alx:6,aly:38,alAnchor:'start',
+    notes:[{x:8,y:18,text:'앉은 자세 · 주관절 90° 굴곡 · 상완을 체간에 붙임',w:700,fill:'#12314f'},
+           {x:8,y:34,text:'전완 중립(엄지 위) = 0°'},
+           {x:8,y:236,text:'※ 국민연금 표는 이를 "팔꿈치 내회전"으로 명명 — 용어 주의',fill:'#b45309',w:700}]},
+  pos:'<b>앉은 자세</b>, 견관절 중립, <b>주관절 90° 굴곡</b>, <b>상완을 체간에 밀착</b>, 전완 중립(엄지 위) = 0°',
+  stab:'<b>원위 상완 + 체간 밀착</b> — 견관절 외전/내회전으로 인한 거짓 회내 방지',
+  axis:'<b>척골 경상돌기의 외측·근위</b>',
+  fx:'<b>상완골(전면 정중선)과 평행</b>',
+  mv:'<b>전완 배측면을 가로질러</b>, 경상돌기 바로 근위부',
+  ef:'<b>Hard</b>(요골이 척골에 접촉) 또는 <b>Firm</b>(배측 요척인대·골간막·회외근군 긴장)',
+  er:'① <b>견관절 외전+내회전(팔꿈치가 몸에서 떨어짐)</b> — 가장 흔하고 값을 크게 부풀림.<br>② <b>손목 굴곡/편위를 전완 회전으로 오독.</b> 이동팔은 <b>손이 아니라 원위 전완 표면</b>에 정렬해야 합니다.<br>③ 연필법(주먹에 연필을 수직으로 쥠)은 간편하지만 손목 움직임이 오차로 들어갑니다'},
+ {n:'전완 회외 (Supination)', nrm:'AAOS 0–80° (문헌 80–90°)', sftr:'R 80-0-80',
+  fig:{jx:160,jy:145,
+    segs:[{t:180,len:70,wd:20,label:'상완(체간 밀착)',dy:16}],
+    fix:{t:0,len:88,label:'상완과 평행 (0°)',lo:20},
+    mov:{t:-66,len:90,label:'전완 수장면을 가로질러',lo:32},
+    arc:{from:0,to:-66,r:42,label:'회외'},
+    axisLabel:'척골 경상돌기 내측',alx:6,aly:38,alAnchor:'start',
+    notes:[{x:8,y:18,text:'앉은 자세 · 주관절 90° 굴곡 · 상완을 체간에 붙임',w:700,fill:'#12314f'}]},
+  pos:'회내와 동일',
+  stab:'원위 상완 + 체간 밀착',
+  axis:'<b>척골 경상돌기의 내측·근위</b>',
+  fx:'상완골과 평행',
+  mv:'<b>전완 장측(수장)면을 가로질러</b>, 경상돌기 바로 근위부',
+  ef:'<b>Firm</b> — 수장측 요척인대·골간막·회내근군 긴장',
+  er:'<b>견관절 내전+외회전(팔꿈치를 몸통 쪽으로 조임)</b> 및 <b>체간 측방굴곡</b>'}
+]},
+{t:'수관절 (Wrist)',
+ pre:`<div class="box good"><b>공통 원칙</b> <b>전완(요골·척골)을 테이블에 밀착 고정</b> — 전완 회내/회외가 손목 운동으로 오독되는 것을 막습니다.
+ 그리고 <b>손가락은 이완</b>시켜야 합니다(주먹을 쥐면 다관절 신근 긴장으로 굴곡이 줄고, 손가락을 펴면 굴근 긴장으로 신전이 줄어듭니다).</div>`,
+ post:`<div class="box info"><b>손목 관절낭 패턴</b> 굴곡과 신전이 균등하게 제한됩니다.</div>`,
+ m:[
+ {n:'굴곡 (Flexion)', nrm:'AAOS 0–80° (문헌 75–80°)', sftr:'S 70-0-80',
+  fig:{jx:170,jy:120,
+    segs:[{t:-90,len:96,wd:18,label:'전완(회내)',dy:-14},{t:56,len:66,wd:13}],
+    fix:{t:-90,len:112,label:'척골 외측 정중선',lo:10,ldy:-14,anchor:'start'},
+    mov:{t:56,len:82,label:'제5중수골 장축',lo:30},
+    arc:{from:90,to:56,r:48,label:'굴곡'},
+    axisLabel:'삼각골',alx:-10,aly:30,alAnchor:'end',
+    notes:[{x:8,y:18,text:'앉은 자세 · 견관절 90° 외전 · 주관절 90° 굴곡',w:700,fill:'#12314f'},
+           {x:8,y:34,text:'전완은 테이블에 지지, 손목은 테이블 끝 밖으로'}]},
+  pos:'앉은 자세, 견관절 90° 외전, 주관절 90° 굴곡, <b>전완 회내</b>, 전완은 테이블 지지·손목은 테이블 끝 밖으로',
+  stab:'요골·척골(전완) — 주관절 굴곡/전완 회외 방지. <b>손가락 이완</b>',
+  axis:'손목 <b>외측(척측)면, 삼각골(triquetrum) 위</b>',
+  fx:'<b>척골 외측 정중선</b> (주두 ↔ 척골 경상돌기)',
+  mv:'<b>제5중수골 장축</b>',
+  ef:'<b>Firm</b> — 배측 요수근인대, 후방 관절낭 긴장',
+  er:'<b>손가락을 주먹 쥐거나 펴는 것</b>(다관절 근육 긴장으로 값 왜곡) + <b>전완 회외로 손을 기울여</b> 거짓 굴곡을 만드는 것'},
+ {n:'신전 (Extension)', nrm:'AAOS 0–70°', sftr:'S 70-0-80',
+  fig:{jx:170,jy:120,
+    segs:[{t:-90,len:96,wd:18,label:'전완(회내)',dy:-14},{t:124,len:66,wd:13}],
+    fix:{t:-90,len:112,label:'척골과 평행',lo:10,ldy:-14,anchor:'start'},
+    mov:{t:124,len:82,label:'제5중수골 장축',lo:32},
+    arc:{from:90,to:124,r:48,label:'신전'},
+    axisLabel:'삼각골',alx:-10,aly:30,alAnchor:'end'},
+  pos:'굴곡과 동일 (전완 회내, 손목 테이블 밖)',
+  stab:'전완 고정. <b>손가락 이완</b>(굴곡시키면 굴근 긴장으로 신전 감소)',
+  axis:'손목 외측 삼각골 위',
+  fx:'척골과 평행 (외측 정중선)',
+  mv:'제5중수골 장축',
+  ef:'<b>Firm</b> — 수장측 요수근인대, 전방 관절낭',
+  er:'<b>손가락을 굴곡(주먹)</b>하여 신전을 제한하거나, 주관절을 들어 전완을 회외시켜 값을 부풀림'},
+ {n:'요측편위 (Radial deviation)', nrm:'AAOS 0–20°', sftr:'F 20-0-30',
+  fig:{jx:170,jy:130,
+    segs:[{t:-90,len:100,wd:18,label:'전완(회내)',dy:-14},{t:70,len:64,wd:13}],
+    fix:{t:-90,len:114,label:'전완 배측 정중선',lo:10,ldy:-14,anchor:'start'},
+    mov:{t:70,len:80,label:'제3중수골 장축',lo:28},
+    arc:{from:90,to:70,r:46,label:'요측 20°'},
+    axisLabel:'유두골',alx:-10,aly:30,alAnchor:'end',
+    notes:[{x:8,y:18,text:'전완·손 전체를 테이블에 편평하게 밀착',w:700,fill:'#12314f'},
+           {x:8,y:236,text:'손목 굴곡·신전은 0° 중립 유지'}]},
+  pos:'앉은 자세, 주관절 90° 굴곡, <b>전완 회내</b>, 전완·손 전체를 테이블에 <b>편평하게</b> 밀착',
+  stab:'요골·척골(전완) — 전완 회외·주관절 움직임 방지. <b>손목 굴곡·신전 0° 중립 유지</b>',
+  axis:'손목 배측, <b>유두골(capitate)</b> 위',
+  fx:'<b>전완 배측 정중선</b>',
+  mv:'<b>제3중수골 장축</b>',
+  ef:'<b>Hard(골성)</b> — <b>요골 경상돌기가 주상골에 충돌</b>. Cyriax 정상 골성 종말감의 대표 예',
+  er:'<b>손목 신전을 동반</b>(신전 상태에서 요측편위가 더 커짐) 또는 전완 회외. 그리고 이동팔을 <b>2번 중수골이나 엄지</b>에 맞추는 실수 — 반드시 <b>3번</b> 중수골'},
+ {n:'척측편위 (Ulnar deviation)', nrm:'AAOS 0–30° (문헌 30–35°)', sftr:'F 20-0-30',
+  fig:{jx:170,jy:130,
+    segs:[{t:-90,len:100,wd:18,label:'전완(회내)',dy:-14},{t:120,len:64,wd:13}],
+    fix:{t:-90,len:114,label:'전완 배측 정중선',lo:10,ldy:-14,anchor:'start'},
+    mov:{t:120,len:80,label:'제3중수골 장축',lo:30},
+    arc:{from:90,to:120,r:46,label:'척측 30°'},
+    axisLabel:'유두골',alx:-10,aly:30,alAnchor:'end'},
+  pos:'요측편위와 동일',
+  stab:'전완 고정, 손목 굴곡·신전 중립',
+  axis:'유두골',
+  fx:'전완 배측 정중선',
+  mv:'제3중수골 장축',
+  ef:'<b>Firm</b> — 요측측부인대·요수근인대 긴장',
+  er:'<b>손목 굴곡 동반</b>(굴곡 상태에서 척측편위 증가) 및 체간/견관절 회전으로 전완이 돌아감'}
+]}];
+document.getElementById('s-ue').innerHTML=UE.map(renderGroup).join('');
+</script>
+<script>
+/* ---------- 척추 ---------- */
+const SP=[
+{t:'경추 (Cervical spine)',
+ pre:`<div class="box crit"><b>⚠ 안전</b> 환축추 불안정(Down 증후군, 류마티스 관절염, 외상 후)에서는 <b>극도로 주의</b>하십시오.
+ 수동 과굴곡·과신전은 금기에 준합니다.</div>
+ <div class="box warn"><b><span class="chip c-amb">불일치</span> 경추 정상치는 출처 간 편차가 가장 큽니다</b>
+ 굴곡: AAOS 계열 <b>45°</b> vs 다른 표 <b>80–90°</b> — <b>거의 2배</b> 차이. 회전: AAOS <b>60°</b> vs AMA 5판·국민연금 <b>80°</b>.<br>
+ 실측 연구(Apti 2023, 건강 청년 300명, 디지털 각도계)는 굴곡 57.7±8.2 / 신전 59.1±10.2 / 측굴 41–42 / <b>회전 70–71°</b>로,
+ <b>AAOS와 AMA 사이</b>에 위치합니다. <b>절대치보다 좌우 비교와 추적 관찰이 훨씬 신뢰할 만합니다.</b></div>`,
+ m:[
+ {n:'굴곡 (Flexion)', nrm:'AAOS 45° / AMA5 50° / 실측 ~58°', sftr:'S 45-0-45 (AAOS 기준)',
+  fig:{jx:168,jy:150,
+    segs:[{t:180,len:96,wd:28,label:'체간',dx:20},{t:22,len:82,wd:22,label:'두부',dx:-20,dy:14}],
+    fix:{t:0,len:96,label:'바닥에 수직',lo:14,anchor:'end'},
+    mov:{t:22,len:100,label:'외이도 → 비공기저부',lo:18,anchor:'start'},
+    arc:{from:0,to:22,r:58,label:'굴곡'},
+    axisLabel:'외이도',alx:-14,aly:6,alAnchor:'end',
+    notes:[{x:8,y:18,text:'앉은 자세 · 등받이·발바닥 지지',w:700,fill:'#12314f'},
+           {x:8,y:240,text:'시작선: 귓불–비공기저부를 잇는 선이 바닥과 평행'}]},
+  pos:'<b>앉은 자세</b>(등받이·발바닥 지지). 시작 기준선 = 귓불과 비공기저부를 잇는 선이 바닥과 평행',
+  stab:'<b>견갑대와 흉곽</b> — 흉·요추 굴곡 대상작용 방지. 스트랩 또는 검사자의 손',
+  axis:'<b>외이도(external auditory meatus)</b> 또는 귓불',
+  fx:'<b>바닥에 수직</b>',
+  mv:'<b>비공기저부(base of the nares)</b> — 또는 혀누르개를 물려 그와 평행',
+  ef:'<b>Firm</b> — 후방 종인대·항인대·후방 근군 신장',
+  er:'<b>입을 벌려 턱만 내리는 것(하악 하강)</b>과 <b>흉추 굴곡</b>. → 입을 다물게 하고 흉곽을 고정',
+  extra:`<div class="box info"><b>대안 측정법</b><br>
+   ·&nbsp;<b>반원형 각도계</b>: 축 = C7 극돌기, 고정팔 = 바닥 수직(또는 흉추 극돌기선), 이동팔 = 머리의 배측 정중선<br>
+   ·&nbsp;<b>이중 경사계(AMA 방식)</b>: 하부 = <b>T1 극돌기</b>, 상부 = <b>두정부</b>. 둘 다 영점 → 굴곡 → <b>두정부 각도 − T1 각도 = 경추 굴곡</b><br>
+   ·&nbsp;<b>줄자(chin-to-chest)</b>: <b>하악 끝 ↔ 흉골절흔</b> 거리를 중립·최대굴곡에서 측정 → <b>차이값(cm)</b>.
+     간편하지만 <b>개구(입 벌림)가 그대로 오차</b>가 됩니다</div>`},
+ {n:'신전 (Extension)', nrm:'AAOS 45° / AMA5 60° / 실측 ~59°', sftr:'S 45-0-45',
+  fig:{jx:176,jy:150,
+    segs:[{t:180,len:96,wd:28,label:'체간',dx:20},{t:-30,len:82,wd:22,label:'두부',dx:-4,dy:22}],
+    fix:{t:0,len:96,label:'바닥에 수직',lo:14,anchor:'start'},
+    mov:{t:-30,len:100,label:'외이도 → 비공기저부',lo:18,anchor:'end'},
+    arc:{from:0,to:-30,r:58,label:'신전'},
+    axisLabel:'외이도',alx:14,aly:6,alAnchor:'start',
+    notes:[{x:8,y:18,text:'앉은 자세 · 등 지지',w:700,fill:'#12314f'},
+           {x:8,y:240,text:'흉요추 신전(등을 젖힘)이 압도적으로 흔한 대상작용'}]},
+  pos:'앉은 자세, 등 지지',
+  stab:'견갑대·흉곽 (흉추 신전 방지) — 의자 등받이에 등 밀착 + 흉골에 손',
+  axis:'외이도',
+  fx:'바닥에 수직',
+  mv:'비공기저부',
+  ef:'<b>Firm</b>(전방 종인대·전경부근) → 접촉 시 hard 가능',
+  er:'<b>흉요추 신전(등을 젖힘)</b>이 압도적으로 흔합니다',
+  extra:`<div class="box good"><b>Occiput-to-Wall Distance (OWD) — 강직성척추염·흉추후만 선별</b>
+   발뒤꿈치·종아리·둔부·어깨를 벽에 붙이고 정면 주시, 후두부를 벽에 최대한 붙임. 닿지 않으면 거리(cm) 측정.<br>
+   <b>정상 = 0 cm · ≤2 cm 정상 · &gt;2 cm 비정상 · &gt;5 cm는 후만증 위험 예측력 최고</b><br>
+   민감도 92.3% / 특이도 76.5% / 검사자간 ICC &gt; 0.9. 후두 촉지가 어려우면 <b>tragus-to-wall</b>로 대체.</div>`},
+ {n:'측방굴곡 (Lateral flexion)', nrm:'AAOS·AMA5·국민연금 모두 45° (편측) — 드물게 일치', sftr:'F 45-0-45',
+  fig:{jx:180,jy:206,
+    segs:[{t:90,len:56,wd:20},{t:-90,len:56,wd:20},{t:-26,len:112,wd:24,label:'두부·경추',dx:-22,dy:10}],
+    fix:{t:0,len:120,label:'바닥에 수직',lo:14,anchor:'start'},
+    mov:{t:-26,len:124,label:'머리 배측 정중선',lo:16,anchor:'end'},
+    arc:{from:0,to:-26,r:74,label:'측굴'},
+    axisLabel:'C7 극돌기',alx:0,aly:40,
+    notes:[{x:8,y:18,text:'뒤에서 본 모습 · 앉은 자세',w:700,fill:'#12314f'},
+           {x:8,y:34,text:'★ 양측 견갑대를 눌러 어깨 거상 차단',fill:'#b45309',w:800}]},
+  pos:'앉은 자세, 정면 주시',
+  stab:'<b>양측 견갑대(어깨 거상 금지)</b> — 검사자가 양 어깨를 아래로 누름',
+  axis:'<b>C7 극돌기</b>',
+  fx:'<b>흉추 극돌기를 따라</b> (또는 바닥에 수직)',
+  mv:'<b>머리의 배측 정중선</b>(외후두융기 방향)',
+  ef:'<b>Firm</b> — Cyriax가 정상 <b>인대성 tissue stretch</b>의 대표 예로 지정',
+  er:'<b>동측 어깨 거상(귀를 어깨로 가져감)</b>이 1위, 다음이 <b>회전 혼입</b>. → 어깨를 누르고 "코가 계속 정면을 향하도록" 지시',
+  extra:`<div class="box info"><b>대안</b> 이중 경사계(관상면 T1 + 두정부, 뺄셈) / 줄자(<b>유양돌기 ↔ 견봉</b> 거리 변화량)</div>`},
+ {n:'회전 (Rotation)', nrm:'AAOS 60° vs AMA5·국민연금 80° <span class="chip c-amb">20° 불일치</span>', sftr:'R 60-0-60 (AAOS)',
+  fig:{jx:170,jy:140,
+    segs:[{t:90,len:74,wd:20},{t:-90,len:74,wd:20}],
+    fix:{t:0,len:96,label:'양 견봉선에 수직 (0°)',lo:18},
+    mov:{t:-58,len:96,label:'코끝',lo:22},
+    arc:{from:0,to:-58,r:60,label:'회전'},
+    axisLabel:'두정부 중심',alx:0,aly:20,
+    notes:[{x:8,y:18,text:'위에서 내려다본 모습 (수평면)',w:700,fill:'#12314f'},
+           {x:8,y:236,text:'★ 경사계 사용 시에는 앙와위 — 체간 회전을 배제할 수 있음',fill:'#b45309',w:700}]},
+  pos:'앉은 자세 (또는 <b>앙와위</b>)',
+  stab:'<b>양 견갑대/체간</b> — 몸통 회전 방지',
+  axis:'<b>두정부 중심</b>',
+  fx:'<b>양 견봉을 잇는 선과 평행</b>(또는 벽·침대에 수직)',
+  mv:'<b>코끝(tip of nose)</b>',
+  ef:'<b>Firm</b> — 반대측 관절낭·인대(alar ligament 포함)',
+  er:'<b>체간 회전(어깨가 따라 돎)</b>이 1위, 다음이 측방굴곡·신전 혼입',
+  extra:`<div class="box good"><b>★ 임상적으로 중요한 요령</b>
+   경사계로 회전을 측정할 때는 <b>앙와위</b>에서 두정부에 단일 경사계를 놓고 직접 읽습니다.
+   앉은 자세에서는 체간 회전을 배제할 수 없기 때문입니다. 줄자법은 <b>턱끝 ↔ 견봉</b> 거리 변화량을 씁니다.</div>`}
+]},
+{t:'흉요추 (Thoracolumbar spine)',
+ pre:`<div class="box crit"><b>⚠ 흉요추 측정의 본질적 문제</b>
+ 체간을 앞으로 굽히는 동작에는 <b>고관절 굴곡(골반 전방회전)</b>이 대부분 섞여 있습니다.
+ <b>요추가 완전히 굳은 환자도 손끝이 바닥에 닿을 수 있습니다.</b>
+ 그래서 fingertip-to-floor 단독 측정은 부적절하고, <b>Schober 계열(피부 표시) 또는 이중 경사계(뺄셈)</b>가 필요합니다.</div>`,
+ m:[
+ {n:'굴곡 (Flexion) — 4가지 방법', nrm:'AMA5 요추 60° / 이중경사계 실측 52±9° / 국민연금 흉요추 전굴 90°', sftr:'S 25-0-60 (AMA5 요추)',
+  pos:'<b>서 있는 자세</b>, 무릎 완전 신전 유지',
+  stab:'무릎 신전 + 골반. <b>골반 전방경사를 허용하면 고관절 굴곡이 요추 굴곡으로 오독</b>됩니다 — 이중 경사계의 뺄셈이 이를 수학적으로 보정',
+  axis:'방법에 따라 다름 (아래 표)',
+  fx:'—', mv:'—',
+  ef:'<b>Firm</b> — 후방 종인대·황색인대·극간인대·척추기립근',
+  er:'<b>고관절 굴곡(골반 전방회전)</b> + 무릎 굴곡. 방법 선택 자체가 결과를 좌우합니다',
+  extra:`<div class="tw"><table>
+    <tr><th style="width:120px">방법</th><th>절차</th><th>정상</th></tr>
+    <tr><td><b>원 Schober</b></td><td>L5 극돌기에 표시 → <b>10 cm 위</b>에 두 번째 표시 → 최대 굴곡 후 두 선 사이 거리 재측정</td><td><b>4–5 cm 증가</b><br>(5 cm 미만 = 양성)</td></tr>
+    <tr class="hl"><td><b>Modified Schober</b><br>(Macrae &amp; Wright)</td><td><b>양측 PSIS를 잇는 선의 중점</b>에 기준선 → <b>5 cm 아래</b> + <b>10 cm 위</b> 표시(총 15 cm) → 굴곡 후 재측정</td><td><b>5 cm 초과 증가</b><br>(15 → 20 cm 이상)<br>특이도 94.9% / 민감도 25.3%</td></tr>
+    <tr><td><b>Modified-Modified<br>Schober (MMS)</b></td><td>양발 15 cm 간격, PSIS 이등분점 + <b>15 cm 위</b> 2점만 사용. PSIS를 쓰는 이유는 <b>요천추 접합부 촉지가 어렵기 때문</b></td><td>증가분(cm)<br><b>신뢰도 최고</b> — 재검사 r 0.78–0.89, 검사자간 0.72</td></tr>
+    <tr><td><b>이중 경사계</b><br>(AMA 채택)</td><td>하부 = <b>천골(S1)</b>, 상부 = <b>T12–L1</b>. 영점 후 최대 굴곡 → <b>T12 각도 − 천골 각도 = 진짜 요추 굴곡</b>. 천골 각도 자체는 고관절 굴곡 성분</td><td><b>52 ± 9°</b><br><span class="chip c-amb">주의</span> 재검사 r 0.13–0.87, 검사자간 0.60 — <b>MMS보다 신뢰도가 낮음</b></td></tr>
+    <tr><td><b>Fingertip-to-floor</b></td><td>무릎 신전 상태로 최대 굴곡, 중지 끝–바닥 거리</td><td>민감도 45.3% / 특이도 88.8%<br><b>고관절·햄스트링·흉추가 모두 섞인 복합 검사 — 요추 특이도 낮음</b></td></tr>
+    <tr><td><b>줄자 C7–S2</b></td><td>중립과 최대굴곡의 차이</td><td>굴곡 ~7.2 cm</td></tr>
+  </table></div>
+  <div class="box warn"><b>⚠ 아이러니</b> AMA Guides가 채택한 <b>이중 경사계</b>가, 정작 신뢰도 연구(Williams, Phys Ther 1993)에서는
+  간단한 <b>Modified-Modified Schober(줄자)</b>보다 나빴습니다 — 저자들은 "이중 경사계 기법은 개선이 필요하다"고 결론했습니다.
+  장해평가에서는 규정상 경사계를 써야 하지만, <b>임상 추적에서는 MMS가 더 재현성이 좋습니다.</b></div>`},
+ {n:'신전 (Extension)', nrm:'AMA5 요추 25° / 실측 19±9° / 국민연금 흉요추 후굴 30°', sftr:'S 25-0-60',
+  pos:'서 있는 자세 (또는 복와위 prone press-up)',
+  stab:'<b>골반/전상장골극을 앞에서 지지</b> — 고관절 신전과 무릎 굴곡으로 인한 대상작용 차단',
+  axis:'각도계법: 최하위 늑골 높이의 중액와선 / 이중 경사계: T12 + 천골',
+  fx:'중액와선 (신전 전후 비교)',
+  mv:'—  · 줄자법(MMS 역방향)은 PSIS 이등분점 + 15 cm 표시가 <b>가까워지는 정도</b>를 측정',
+  ef:'<b>Firm</b> → 극돌기 접촉 시 <b>hard</b>',
+  er:'<b>무릎을 굽히고 고관절을 신전시켜 몸 전체를 뒤로 젖히는 것.</b> 발을 고정하고 골반 앞을 지지'},
+ {n:'측방굴곡 (Lateral flexion)', nrm:'AMA5 요추 25° / 실측 30–31±6° / 국민연금 30°', sftr:'F 25-0-25 (AMA5 요추)',
+  pos:'서 있는 자세, <b>등을 벽에 대면</b> 전방굴곡 혼입을 차단할 수 있음',
+  stab:'<b>골반</b> — 검사자가 옆에서 장골능을 눌러 골반 거상·측방이동 차단',
+  axis:'<b>S1 극돌기</b>',
+  fx:'<b>바닥에 수직</b>',
+  mv:'<b>요추 극돌기 선을 따라</b> (S1 → C7)',
+  ef:'<b>Firm</b> — 반대측 관절낭·횡돌간인대·요방형근',
+  er:'<b>골반을 반대쪽으로 밀며 몸통을 기울이는 측방 이동</b> + 전방굴곡·회전 혼입. → 등을 벽에 대고, 손끝이 대퇴 외측을 따라 미끄러지도록 지시',
+  extra:`<div class="box info"><b>대안</b> · <b>Mellin법</b>: 직립 시 제3지 끝이 닿는 대퇴 외측 지점에 표시 → 최대 측굴 후 다시 표시 → 두 표시 사이 거리<br>
+   ·&nbsp;<b>Fingertip-to-floor 변화량</b> · <b>이중 경사계</b>(PSIS 이등분점 + 15 cm 상방, 관상면)</div>`},
+ {n:'회전 (Rotation)', nrm:'AMA5 흉추 30° / 실측 흉추 35–47°, 요추 38–42° / 국민연금 30°', sftr:'R 30-0-30 (AMA5 흉추)',
+  pos:'<b>반드시 앉은 자세</b> — 서서 하면 고관절 회전이 섞입니다',
+  stab:'<b>골반을 양손으로 고정</b>, 대퇴가 벌어지지 않게. 팔짱을 끼게 하면 상지 대상작용도 줄어듦',
+  axis:'<b>두정부(top of head)</b>',
+  fx:'<b>양측 장골능 결절을 잇는 선</b>',
+  mv:'<b>양 견봉을 잇는 선</b>',
+  ef:'<b>Firm</b> — 관절돌기 관절낭·윤상섬유',
+  er:`<b>골반 회전 + 반대측 견갑골 전인.</b><br><b>★ 해석 주의:</b> 요추 자체의 회전은 해부학적으로 분절당 약 2°로 매우 작습니다.
+   측정값 대부분은 <b>흉추</b>에서 나오므로, <b>"요추 회전"을 단독으로 신뢰하지 마십시오.</b>`,
+  extra:`<div class="box info"><b>대안</b> Frost법(줄자): 앉은 자세에서 <b>동측 견봉 외측단 ↔ 반대측 대퇴 대전자</b> 거리의 변화량</div>`}
+]}];
+document.getElementById('s-spine').innerHTML=SP.map(renderGroup).join('');
+</script>
+<script>
+/* ---------- 하지 ---------- */
+const LE=[
+{t:'고관절 (Hip)',
+ pre:`<div class="box crit"><b>⚠ 고관절 측정의 모든 오류는 결국 골반·요추 대상작용입니다</b>
+ 원칙: <b>양측 ASIS와 치골결합을 잇는 면이 수직</b>으로 유지되는지 계속 확인하십시오.
+ 요추 밑에 손을 넣어 <b>골반이 움직이기 시작하는 순간</b>을 종점으로 삼습니다.</div>
+ <div class="box warn"><b>실측 정상치는 교과서와 크게 다릅니다</b>
+ Roaas &amp; Andersson(1982, 건강 남성 30–40세, 수동 ROM, AAOS 기법):
+ 굴곡 <b>120.3±8.3°</b>(교과서 120°와 일치) / <b>신전 9.4±5.3°</b>(교과서 30°의 <b>1/3</b>) /
+ 외전 38.8±7.0 / 내전 30.5±7.3 / 내회전 32.6±8.2 / 외회전 33.6±6.8.<br>
+ → <b>고관절 신전은 "교과서 정상치와 실측의 괴리가 가장 큰 동작"</b>입니다. SD가 5–8°이므로 정상 개인차만 ±10~16°(2SD)입니다.</div>`,
+ m:[
+ {n:'굴곡 (Flexion)', nrm:'AAOS 120° vs AMA·국민연금 100° <span class="chip c-amb">20° 불일치</span>', sftr:'S 15-0-125',
+  fig:{jx:175,jy:150,
+    segs:[{t:-90,len:96,wd:24,label:'체간',dy:-12},{t:-32,len:92,wd:20},
+          {t:62,len:58,wd:14,ox:-49,oy:-78}],
+    fix:{t:-90,len:112,label:'골반·체간 정중선',lo:10,ldy:-14,anchor:'start'},
+    mov:{t:-32,len:104,label:'대퇴 정중선→외측상과',lo:22},
+    arc:{from:90,to:-32,r:52,label:'굴곡'},
+    axisLabel:'대전자',alx:-8,aly:22,alAnchor:'end',
+    notes:[{x:8,y:18,text:'앙와위 (측면에서 본 모습)',w:700,fill:'#12314f'},
+           {x:8,y:224,text:'★ 검사측 무릎은 굴곡 — 햄스트링 긴장 배제',fill:'#b45309',w:800},
+           {x:8,y:240,text:'요추 밑에 손 → 골반이 움직이기 시작하는 순간이 종점'}]},
+  pos:'<b>앙와위</b>, 외전/내전 0°, 회전 0°, <b>검사측 무릎은 굴곡</b>시켜 굴곡',
+  stab:'<b>동측 골반 전면 / 요추.</b> 반대측 고관절을 굴곡시켜 요추 전만을 소실시키고, 요추 밑에 손을 넣어 <b>골반 움직임 시작 시점을 감지</b>. "골반이 움직이기 시작하는 지점을 넘어 굴곡시키지 말 것"',
+  axis:'<b>대전자(greater trochanter)</b> <span class="chip c-grn">3중 일치</span>',
+  fx:'<b>골반/체간의 외측 정중선</b> — 체간과 평행',
+  mv:'<b>대퇴골 외측 정중선</b> → 원위 기준 <b>외측 대퇴상과</b>',
+  ef:'무릎 굴곡 시 <b>Soft</b>(대퇴 전면 근육이 복부에 접촉) / 무릎 신전 시 <b>Firm</b>(햄스트링)',
+  er:'<b>골반 후방경사 + 요추 굴곡(엉덩이가 들림)</b> — 값을 20–30° 이상 부풀립니다. 반대측 하지를 침대에 눌러 고정'},
+ {n:'신전 (Extension) + Thomas test', nrm:'AAOS 20–30° / <b>실측 9.4±5.3°</b>', sftr:'S 15-0-125',
+  fig:{jx:170,jy:130,
+    segs:[{t:90,len:100,wd:24,label:'체간(복와위)',dx:-6,dy:22},{t:-104,len:96,wd:20}],
+    fix:{t:90,len:110,label:'골반 외측 정중선',lo:10,ldy:-14,anchor:'end'},
+    mov:{t:-104,len:108,label:'대퇴 외측 정중선',lo:20},
+    arc:{from:-90,to:-104,r:56,label:'신전'},
+    axisLabel:'대전자',alx:-12,aly:-16,alAnchor:'end',
+    notes:[{x:8,y:18,text:'복와위 · 검사측 무릎 신전(대퇴직근 긴장 배제)',w:700,fill:'#12314f'},
+           {x:8,y:236,text:'★ 골반(장골능·천골)을 아래로 눌러 고정',fill:'#b45309',w:800}]},
+  pos:'<b>복와위</b>, 검사측 <b>무릎 신전</b>(굴곡하면 대퇴직근 긴장으로 값 감소)',
+  stab:'<b>골반(장골능/천골)을 아래로 눌러 고정</b> — 골반 전방경사·요추 신전 방지',
+  axis:'대전자',
+  fx:'골반 외측 정중선 (체간과 평행)',
+  mv:'대퇴골 외측 정중선 → 외측 대퇴상과',
+  ef:'<b>Firm</b> — 전방 관절낭(장골대퇴인대, Y ligament)',
+  er:'<b>골반 전방경사 + 요추 신전(허리를 젖힘).</b> 신뢰도는 AAOS법(반대측 고관절 굴곡)과 Thomas법이 가장 높습니다',
+  extra:`<div class="box good"><b>Thomas Test — 굴곡구축을 각도로 정량하는 표준</b><br>
+   <b>자세</b> 둔부 주름이 침대 가장자리에 오도록 앉았다가 누움. <b>비검사측 고관절을 90° 굴곡</b>(무릎을 가슴으로)하여 요추 전만 소실.<br>
+   <b>고정</b> 검사측 <b>ASIS에 후상방 압력</b> — 골반 전방경사(위음성 원인) 차단.<br>
+   <b>측정</b> 축 = 대전자, 고정팔 = 수평(골반 정중선), 이동팔 = 대퇴골 → <b>대퇴가 수평면 위로 뜨는 각도 = 굴곡구축</b>
+   <div class="tw" style="margin-top:8px"><table>
+     <tr><th>소견</th><th>침범 근육</th></tr>
+     <tr><td>대퇴가 침대에 닿지 않고 + 무릎이 펴짐</td><td>단관절·이관절 굴근 모두</td></tr>
+     <tr class="hl"><td>대퇴는 닿으나 <b>무릎이 펴짐</b></td><td><b>대퇴직근</b>, TFL, 봉공근 (이관절근)</td></tr>
+     <tr><td>대퇴가 닿지 않고 <b>무릎은 80° 이상 굴곡 유지</b></td><td><b>장요근</b>, 치골근, 내전근 (단관절근)</td></tr>
+     <tr><td>신전과 함께 <b>외전</b>됨</td><td>TFL / 장경인대</td></tr>
+   </table></div>
+   <b>⚠ 오류</b> 반대측 고관절을 <b>과도하게</b> 굴곡시키면 골반이 과도하게 후방경사되어 <b>위양성(가짜 구축)</b>.
+   반대로 ASIS 고정을 소홀히 하면 <b>위음성</b>.</div>`},
+ {n:'외전 (Abduction)', nrm:'AAOS 45°(또는 40°) / AMA·국민연금 40° / 실측 38.8±7.0°', sftr:'F 45-0-30',
+  fig:{jx:172,jy:96,
+    segs:[{t:180,len:0,wd:1},{t:180,len:104,wd:22,label:'반대측 하지',ox:-70,dx:-12},
+          {t:158,len:110,wd:22}],
+    fix:{t:-90,len:96,label:'반대측 ASIS를 향한 선',lo:8,ldy:-14,anchor:'start'},
+    mov:{t:158,len:112,label:'대퇴 전면→슬개골 중앙',lo:22},
+    arc:{from:180,to:158,r:64,label:'외전'},
+    axisLabel:'검사측 ASIS',alx:14,aly:-14,alAnchor:'start',
+    notes:[{x:8,y:18,text:'앙와위 (정면에서 본 모습)',w:700,fill:'#12314f'},
+           {x:8,y:236,text:'★ 양 ASIS를 잇는 선이 침대 장축과 수직인지 계속 확인',fill:'#b45309',w:700}]},
+  pos:'<b>앙와위</b>, 고관절 굴곡/신전 0°, 회전 중립',
+  stab:'<b>반대측 ASIS를 눌러</b> 골반 측방경사(lateral tilt) 차단',
+  axis:'<b>검사측 ASIS</b>',
+  fx:'<b>반대측 ASIS를 향한 선</b>(양 ASIS를 잇는 가상선)',
+  mv:'<b>대퇴골 전면 정중선</b> → 원위 기준 <b>슬개골 중앙</b>',
+  ef:'<b>Firm</b> — 하방 관절낭, <b>치골대퇴인대</b>, 내전근군 긴장',
+  er:'<b>골반의 동측 거상(hip hiking) + 요추 측방굴곡.</b> → 양 ASIS 선이 침대 장축과 수직인지 계속 확인.<br>소아에서 흔히 하는 <b>90° 굴곡 자세 외전은 신뢰도가 낮습니다</b>'},
+ {n:'내전 (Adduction)', nrm:'AAOS 30°(또는 20°) / AMA·국민연금 20° / 실측 30.5±7.3°', sftr:'F 45-0-30',
+  fig:{jx:172,jy:96,
+    segs:[{t:180,len:104,wd:22,label:'반대측(외전시킴)',ox:-70,dx:-20},
+          {t:198,len:110,wd:22}],
+    fix:{t:-90,len:96,label:'양 ASIS를 잇는 선',lo:8,ldy:-14,anchor:'start'},
+    mov:{t:198,len:112,label:'대퇴 전면→슬개골 중앙',lo:22},
+    arc:{from:180,to:198,r:64,label:'내전'},
+    axisLabel:'검사측 ASIS',alx:14,aly:-14,alAnchor:'start'},
+  pos:'앙와위. <b>반대측 하지를 외전시켜</b> 검사측 하지가 지나갈 공간을 만듦',
+  stab:'동측 ASIS 고정 (골반 거상·회전 방지)',
+  axis:'검사측 ASIS',
+  fx:'양 ASIS를 잇는 선',
+  mv:'대퇴골 전면 정중선 → 슬개골 중앙',
+  ef:'<b>Firm</b> — 상방 관절낭, 장골대퇴인대 상부대, 중둔근 긴장',
+  er:'<b>골반 회전/거상</b>, 그리고 <b>고관절 굴곡을 섞어 반대편 다리 위로 넘기는 것.</b> 순수 관상면을 유지해야 합니다'},
+ {n:'내회전 (Internal rotation)', nrm:'AAOS 45° / AMA·국민연금 40° / 실측 32.6±8.2°', sftr:'R(S90) 45-0-45',
+  fig:{jx:168,jy:100,
+    segs:[{t:180,len:0,wd:1},{t:158,len:104,wd:16}],
+    fix:{t:180,len:98,label:'바닥에 수직 (0°)',lo:14,anchor:'end'},
+    mov:{t:158,len:112,label:'하퇴 정중선→복사뼈 중점',lo:22,anchor:'start'},
+    arc:{from:180,to:158,r:66,label:'내회전'},
+    axisLabel:'슬개골 전면 중앙',alx:0,aly:-14,
+    notes:[{x:8,y:18,text:'앉은 자세 · 고·슬관절 90° 굴곡 · 원위 대퇴 아래 수건롤',w:700,fill:'#12314f'},
+           {x:8,y:34,text:'하퇴가 밖으로 나가면 내회전 (앞에서 본 모습)'}]},
+  pos:'<b>앉은 자세</b>: 고·슬관절 90° 굴곡, <b>원위 대퇴 아래 수건롤</b>. 대안: <b>복와위</b> 또는 앙와위(고관절 0° 신전)',
+  stab:'<b>동측 원위 대퇴 + 골반.</b> 앉은 자세에서는 환자가 침대 모서리를 잡게 하여 체간 고정',
+  axis:'<b>슬개골 전면 중앙(anterior midpatella)</b>',
+  fx:'<b>바닥에 수직</b>',
+  mv:'<b>하퇴 전면 정중선(경골능)</b> → 원위 기준 양 복사뼈 중점',
+  ef:'<b>Firm</b> — 후방 관절낭 + <b>좌골대퇴인대</b> + 외회전근군 긴장',
+  er:'<b>동측 골반 거상 + 체간 반대측 기울임(엉덩이가 뜸)</b>, 다음으로 고관절 외전 혼입. → 양측 좌골결절이 침대에 붙어 있는지 확인'},
+ {n:'외회전 (External rotation)', nrm:'AAOS 45° / AMA·국민연금 50° / 실측 33.6±6.8°', sftr:'R(S90) 45-0-45',
+  fig:{jx:168,jy:100,
+    segs:[{t:202,len:104,wd:16}],
+    fix:{t:180,len:98,label:'바닥에 수직 (0°)',lo:14,anchor:'start'},
+    mov:{t:202,len:112,label:'하퇴 정중선→복사뼈 중점',lo:22,anchor:'end'},
+    arc:{from:180,to:202,r:66,label:'외회전'},
+    axisLabel:'슬개골 전면 중앙',alx:0,aly:-14},
+  pos:'앉은 자세(고·슬관절 90°) 또는 복와위',
+  stab:'동측 대퇴 + 골반',
+  axis:'슬개골 전면 중앙',
+  fx:'바닥에 수직',
+  mv:'하퇴 전면 정중선(경골능) → 복사뼈 중점',
+  ef:'<b>Firm</b> — 전방 관절낭, <b>장골대퇴인대(내·외측 섬유), 치골대퇴인대</b>, TFL/장경인대',
+  er:'<b>반대측 골반 거상 + 체간 동측 기울임</b>, 그리고 고관절 내전 혼입',
+  extra:`<div class="box crit"><b>★ 앉은 자세 vs 복와위 — 값이 다릅니다 (통념과 반대)</b>
+   건강한 성인 151명 연구: <b>"Hip rotation ROM was significantly higher in the prone position than in the sitting position."</b>
+   — <b>복와위(신전위)가 앉은 자세(굴곡위)보다 회전 ROM이 큽니다.</b>
+   남성은 두 자세 모두에서 외회전이, 여성은 내회전이 더 큽니다.<br>
+   신뢰도는 두 자세가 동등하므로 어느 쪽을 써도 되지만,
+   <b>반드시 자세를 기록하고 추적 시 같은 자세를 유지</b>하십시오. <b>두 자세의 값을 서로 비교하면 안 됩니다.</b></div>`}
+]},
+{t:'슬관절 (Knee)', m:[
+ {n:'굴곡 (Flexion)', nrm:'AAOS 135° vs AMA·국민연금 150° <span class="chip c-amb">15° 불일치</span> / 실측 143.8±6.4°', sftr:'S 0-0-135',
+  fig:{jx:160,jy:130,
+    segs:[{t:-70,len:100,wd:22},{t:52,len:92,wd:17}],
+    fix:{t:-70,len:112,label:'대퇴 정중선→대전자',lo:14,anchor:'start'},
+    mov:{t:52,len:104,label:'비골 정중선→외측복사',lo:22},
+    arc:{from:110,to:52,r:52,label:'굴곡'},
+    axisLabel:'대퇴골 외측상과',alx:-12,aly:22,alAnchor:'end',
+    notes:[{x:8,y:18,text:'앙와위(고관절 굴곡 동반) 또는 복와위',w:700,fill:'#12314f'},
+           {x:8,y:236,text:'※ 고정팔을 반드시 대전자에 맞춰야 대퇴 자체 위치가 반영됨'}]},
+  pos:'<b>앙와위</b>(고관절 굴곡 동반) 또는 <b>복와위</b>. 시작 = 슬관절 신전, 고관절 0° 신전·외전·내전',
+  stab:'<b>대퇴골</b> — 회전·외전·내전 방지',
+  axis:'<b>대퇴골 외측상과</b>',
+  fx:'<b>대퇴골 외측 정중선 → 대전자</b>',
+  mv:'<b>비골 외측 정중선 → 외측복사</b> (비골두를 지나)',
+  ef:'<b>Soft</b> — 종아리와 대퇴 후면 접촉. 대퇴사두근 긴장이 크면 firm',
+  er:`<b>고관절 굴곡을 늘려(무릎을 가슴으로 당김) 슬관절 굴곡을 과대평가</b>, 복와위에서는 골반을 들어올림.<br>
+   → 고정팔을 반드시 <b>대전자</b>에 맞추어 대퇴 자체의 위치를 반영시킵니다`,
+  extra:`<div class="box info"><b>자세에 따라 값이 다릅니다</b> 복와위(대퇴직근 긴장) &lt; 앙와위 고관절 굴곡. 복와위 기대치는 약 <b>135°</b>. <b>자세 기록 필수.</b><br>
+   <b>기능적 기준</b> — 보행 유각기 <b>67°</b> · 계단 오르기 <b>83°</b> · 계단 내려가기 <b>90°</b> · 의자에서 일어서기 <b>93°</b>.
+   TKA 후 "굴곡 90°"의 의미를 이 표로 설명하면 환자 교육에 효과적입니다.</div>`},
+ {n:'신전 (Extension)', nrm:'AAOS·AMA·국민연금 모두 0° (실측 −1.6±2.8°, 여성 과신전 흔함)', sftr:'S 0-0-135 / 과신전 시 S 10-0-135',
+  fig:{jx:150,jy:120,
+    segs:[{t:-100,len:96,wd:22},{t:86,len:98,wd:17}],
+    fix:{t:-100,len:108,label:'대퇴 정중선→대전자',lo:14,ldy:16,anchor:'start'},
+    mov:{t:86,len:112,label:'비골 정중선→외측복사',lo:16,ldy:-14,anchor:'end'},
+    axisLabel:'대퇴골 외측상과',alx:0,aly:30,
+    notes:[{x:8,y:18,text:'복와위 · 발목이 침대 밖으로',w:700,fill:'#12314f'},
+           {x:8,y:34,text:'(대퇴 전면이 침대에 닿아 대퇴 위치 고정)'},
+           {x:8,y:224,text:'0° = 대퇴와 하퇴가 일직선',w:700,fill:'#12314f'},
+           {x:8,y:240,text:'과신전은 “−10°”가 아니라 S 10-0-130으로 기록',fill:'#b45309',w:700}]},
+  pos:'<b>복와위, 검사측 발목이 침대 밖으로</b> (대퇴 전면이 침대에 닿아 대퇴 위치 고정). 또는 앙와위에서 발뒤꿈치 밑에 수건을 받쳐 과신전 확인',
+  stab:'대퇴골 고정',
+  axis:'대퇴골 외측상과',
+  fx:'대퇴골 외측 정중선 → 대전자',
+  mv:'비골 외측 정중선 → 외측복사',
+  ef:'<b>Firm</b> — 후방 관절낭, 후방 십자인대, 측부인대, 사슬와인대 <span class="chip c-amb">불일치</span> Cyriax 계열은 슬관절 신전을 <b>hard(bone-to-bone)</b>의 예로도 듦',
+  er:`<b>① 신전지연(extension lag)과 굴곡구축(flexion contracture)의 혼동</b> — 반드시 AROM과 PROM을 따로.<br>
+   예: <code>AROM 15–130° / PROM 5–135°</code> → <b>신전지연 10°, 굴곡구축 5°</b><br>
+   <b>② 과신전을 "−10°"로 기록</b> — 굴곡구축 10°와 혼동됩니다. <b>"hyperextension 10°" 또는 S 10-0-130</b>으로 명확히`,
+  extra:`<div class="box warn"><b>Springy block을 놓치지 마십시오</b>
+   정상 ROM 도달 전에 튕기는 종말감으로 신전이 막히면 <b>반월상연골 파열이나 관절내 유리체</b>입니다.
+   각도만 적고 종말감을 적지 않으면 이 진단이 차트에서 사라집니다.</div>`}
+]},
+{t:'족관절 · 후족부 (Ankle / Hindfoot)', m:[
+ {n:'배측굴곡 (Dorsiflexion)', nrm:'AAOS·AMA 20° / <b>무릎 신전 시 ~10°, 무릎 90° 굴곡 시 ~20°</b> / 실측 15.3±5.8°', sftr:'S 20-0-50 (AAOS) · 첨족 15°는 S 0-15-30',
+  fig:{jx:150,jy:160,
+    segs:[{t:-6,len:110,wd:20},{t:76,len:78,wd:15}],
+    fix:{t:-6,len:116,label:'비골 정중선→비골두',lo:14,anchor:'start'},
+    mov:{t:76,len:92,label:'제5중족골과 평행',lo:30,anchor:'end'},
+    arc:{from:90,to:76,r:46,label:'배굴'},
+    axisLabel:'외측복사',alx:-12,aly:24,alAnchor:'end',
+    notes:[{x:8,y:18,text:'앙와위·복와위·앉은 자세 모두 가능',w:700,fill:'#12314f'},
+           {x:8,y:224,text:'★ 거골하관절을 중립으로 잠그고 종골을 잡고 민다',w:800,fill:'#b45309'},
+           {x:8,y:240,text:'무릎 위치를 반드시 함께 기록',fill:'#12314f',w:700}]},
+  pos:'앙와위·복와위·앉은 자세 모두 가능. <b>핵심은 슬관절 위치</b>:<br>·&nbsp;<b>슬관절 신전</b> → 비복근 포함 → 정상 <b>~10°</b><br>·&nbsp;<b>슬관절 90° 굴곡</b> → 비복근 이완, 가자미근+관절낭만 → 정상 <b>~20°</b>',
+  stab:'<b>원위 경골·비골</b> 고정 + <b>거골하관절을 중립으로 잠그고 중족부 고정</b> — 이것이 정확도의 핵심',
+  axis:'<b>외측복사 외측면</b> <span class="chip c-amb">불일치</span> Physiopedia는 "비골과 제5중족골의 이등분선상 외측 종골"로 기재 — 외측복사 기준이 표준',
+  fx:'<b>비골 외측 정중선 → 비골두</b> <span class="chip c-grn">3중 일치</span>',
+  mv:'<b>제5중족골 외측면과 평행</b> <span class="chip c-grn">3중 일치</span>',
+  ef:'<b>Firm</b> — 아킬레스건/비복근-가자미근 복합체, 후방 관절낭, 삼각인대 후방섬유',
+  er:`<b>★ 중족부(midtarsal) 배측굴곡과 거골하 회내를 진짜 족관절 배측굴곡으로 오독</b> — 가장 흔하고 가장 큰 오차원입니다.
+   발을 밀 때 종아치가 무너지고 전족부가 들리면, <b>talocrural 배측굴곡이 전혀 없어도 각도계 값은 커집니다.</b>
+   → <b>거골하관절 중립 잠금 + 종골(뒤꿈치)을 잡고 미는 것</b>이 필수.<br>
+   부수적으로 <b>슬관절 위치를 기록하지 않는 것</b>도 흔한 오류입니다`,
+  extra:`<div class="box good"><b>체중부하 대안: Weight-Bearing Lunge Test (Knee-to-Wall)</b>
+   정상 = 경골 각도 <b>35–40°</b> 또는 벽–엄지발가락 거리 <b>&gt;10 cm</b>. MDC: 경사계 2.1–3.5°, 줄자 1.1–1.7 cm.<br>
+   <b>흔한 오류</b> ① <b>뒤꿈치 들림</b>(가장 치명적) ② 발의 회내(내측 아치 붕괴) ③ 동적 무릎 외반.<br>
+   지시어: "뒤꿈치를 바닥에 붙인 채로" / "무릎이 두 번째 발가락 위를 지나가도록".
+   좌우 차이 &gt;2–4° 또는 &gt;2 cm면 조사 대상입니다.</div>`},
+ {n:'저측굴곡 (Plantarflexion)', nrm:'AAOS 50° vs AMA·국민연금 40° <span class="chip c-amb">10° 불일치</span> / 실측 39.7±7.5°', sftr:'S 20-0-50 (AAOS)',
+  fig:{jx:150,jy:160,
+    segs:[{t:-6,len:110,wd:20},{t:132,len:78,wd:15}],
+    fix:{t:-6,len:116,label:'비골 정중선→비골두',lo:14,anchor:'start'},
+    mov:{t:132,len:92,label:'제5중족골 정중선',lo:24,anchor:'start'},
+    arc:{from:90,to:132,r:48,label:'저굴'},
+    axisLabel:'외측복사 원위·정렬',alx:-12,aly:24,alAnchor:'end',
+    notes:[{x:8,y:18,text:'※ 국민연금 표기 주의',w:800,fill:'#b45309'},
+           {x:8,y:34,text:'"굴곡 40°"=족저굴곡, "신전 20°"=족배굴곡 — 방향이 반대로 읽히기 쉬움',fill:'#b45309'}]},
+  pos:'앙와위 또는 앉은 자세, <b>슬관절 굴곡</b>(전경골근 긴장 회피) 또는 신전, 족관절 해부학적 중립에서 시작',
+  stab:'<b>원위 하퇴 후면</b> + 거골하 중립 유지',
+  axis:'<b>외측복사 원위부이면서 외측복사와 정렬</b>',
+  fx:'<b>비골 외측 정중선, 비골두와 일직선</b>',
+  mv:'<b>제5중족골 외측 정중선</b>',
+  ef:'<b>Firm</b> — 전방 관절낭, 전거비인대·삼각인대 전방섬유, 전경골근 긴장',
+  er:`<b>중족부 저측굴곡 + 거골하 회외 혼입</b> — 발가락과 전족부만 아래로 구부러져 값이 커집니다. <b>거골하 중립 유지 + 종골을 잡고 조작.</b><br>
+   그리고 <b>슬관절 위치를 안 적는 것</b>`},
+ {n:'거골하 내번 / 외번 (Subtalar inversion / eversion)', nrm:'후면법 내번 20° / 외번 10° &nbsp;·&nbsp; 전면법 내번 30–35° / 외번 15–20°', sftr:'F 20-0-10 (후면법)',
+  fig:{jx:160,jy:110,
+    segs:[{t:180,len:88,wd:22},{t:158,len:70,wd:18}],
+    fix:{t:180,len:100,label:'하퇴 후면 정중선',lo:14,anchor:'end'},
+    mov:{t:158,len:92,label:'종골 후면 정중선',lo:22,anchor:'start'},
+    arc:{from:180,to:158,r:58,label:'내번'},
+    axisLabel:'양 복사뼈 중점(후면)',alx:0,aly:-14,
+    notes:[{x:8,y:18,text:'복와위 후면법 — 뒤에서 본 모습 (진짜 거골하관절)',w:700,fill:'#12314f'},
+           {x:8,y:236,text:'외측복사가 침대 끝에서 약 10 cm 밖으로'}]},
+  pos:'<b>방법 A(복와위 후면법 — 진짜 거골하)</b>: 복와위, 외측복사가 침대 끝에서 <b>약 10 cm 밖으로</b>, 족관절 중립.<br><b>방법 B(좌위 전면법 — 거골하+중족 복합)</b>: 앉은 자세, 슬관절 90° 굴곡, 하퇴가 침대 밖으로',
+  stab:'<b>원위 하퇴</b> — 고관절 내·외회전이 내번/외번으로 오독되는 것 차단',
+  axis:'A: <b>족관절 후면, 양 복사뼈 중점</b> / B: <b>족관절 전면, 양 복사뼈 사이 중점</b>',
+  fx:'A: <b>하퇴 후면 정중선</b> / B: <b>하퇴 전면 정중선 → 경골조면</b>',
+  mv:'A: <b>종골 후면 정중선</b> / B: <b>제2중족골 전면 정중선</b>',
+  ef:'내번 <b>Firm</b>(외측 인대·비골근건) / 외번 <b>Hard</b> — <b>종골이 비골에 접촉</b>(거골하 외번의 골성 차단은 정상)',
+  er:`<b>★ 거골하 운동과 중족부 운동을 구분하지 않는 것.</b> 검증 연구에서 총 내번–외번 범위가
+   <b>좌위 전면법 43.1±10.1° vs 복와위 후면법 24.2±6.4°</b> — 전면법 값을 "거골하 ROM"이라고 보고하면 <b>약 2배 과대평가</b>입니다.<br>
+   ② <b>하지 전체의 고관절 내·외회전</b> — 슬개골이 정면을 유지하는지 확인.<br>
+   ③ <b>족관절 저측굴곡 혼입</b> — 저굴 상태에서 내번이 크게 증가(거골 안정성 감소)`,
+  extra:`<div class="box warn"><b>실측 대 교과서</b> Roaas 1982에서는 내반 <b>27.7±6.9°</b>, 외반 <b>27.6±4.6°</b>로 <b>거의 대칭</b>이었습니다.
+  AAOS의 비대칭 값(내번 35 / 외번 15)과 상당히 다릅니다. <b>어느 방법으로 쟀는지를 반드시 기록</b>하십시오.</div>`}
+]}];
+document.getElementById('s-le').innerHTML=LE.map(renderGroup).join('');
+</script>
+<script>
+/* ===== 6. 정상치·불일치 ===== */
+function lineChart(o){
+  const w=344,h=228,L=40,R=28,T=26,B=40;
+  const pw=w-L-R, ph=h-T-B;
+  const ymin=o.ymin, ymax=o.ymax;
+  const X=i=>L+pw*i/(o.x.length-1), Y=v=>T+ph*(1-(v-ymin)/(ymax-ymin));
+  let s=`<svg viewBox="0 0 ${w} ${h}"><rect width="${w}" height="${h}" fill="#fbfdff"/>`;
+  for(let v=ymin;v<=ymax;v+=o.step){
+    s+=`<line x1="${L}" y1="${fmt(Y(v))}" x2="${w-R}" y2="${fmt(Y(v))}" stroke="#e5ecf3" stroke-width="1"/>`;
+    s+=`<text x="${L-6}" y="${fmt(Y(v)+3.5)}" font-size="9" fill="#9fb0c0" text-anchor="end">${v}</text>`;
+  }
+  if(o.ref!==undefined&&o.ref<=ymax&&o.ref>=ymin){
+    s+=`<line x1="${L}" y1="${fmt(Y(o.ref))}" x2="${w-R}" y2="${fmt(Y(o.ref))}" stroke="#b91c1c" stroke-width="2" stroke-dasharray="6 4"/>`;
+    s+=`<text x="${w-R-2}" y="${fmt(Y(o.ref)-5)}" font-size="10" fill="#b91c1c" font-weight="800" text-anchor="end">${o.refLabel}</text>`;
+  }
+  o.x.forEach((lb,i)=>{s+=`<text x="${fmt(X(i))}" y="${h-B+15}" font-size="9" fill="#5b6b7c" text-anchor="middle">${lb}</text>`;});
+  o.series.forEach(se=>{
+    s+=`<polyline fill="none" stroke="${se.c}" stroke-width="2.6" points="${se.v.map((v,i)=>`${fmt(X(i))},${fmt(Y(v))}`).join(' ')}"/>`;
+    se.v.forEach((v,i)=>{s+=`<circle cx="${fmt(X(i))}" cy="${fmt(Y(v))}" r="3.2" fill="#fff" stroke="${se.c}" stroke-width="2"/>`;});
+  });
+  s+=`<text x="${L}" y="14" font-size="11" fill="#12314f" font-weight="800">${o.title}</text>`;
+  let lx=L;
+  o.series.forEach(se=>{
+    s+=`<rect x="${lx}" y="${h-14}" width="12" height="3" fill="${se.c}"/><text x="${lx+16}" y="${h-10}" font-size="9.5" fill="#5b6b7c">${se.n}</text>`;
+    lx+=20+se.n.length*7;
+  });
+  s+=`</svg>`;
+  return `<div class="figwrap">${s}</div>`;
+}
+document.getElementById('s-norms').innerHTML=`
+<div class="card">
+  <h2 class="st">A급 불일치 — 진단서·장해평가에서 결론이 뒤바뀌는 5가지</h2>
+  <div class="tw"><table>
+    <tr><th>동작</th><th class="c">AAOS</th><th class="c">AMA·국민연금</th><th class="c">차이</th><th>임상적 의미</th></tr>
+    <tr class="hl"><td><b>고관절 굴곡</b></td><td class="c"><b>120°</b></td><td class="c"><b>100°</b></td><td class="c"><b>20°</b></td>
+      <td>같은 환자의 굴곡 100°가 AAOS로는 "17% 제한", AMA로는 <b>정상</b>. 고관절 치환술 후 평가에서 결론이 뒤바뀝니다</td></tr>
+    <tr class="hl"><td><b>무릎 굴곡</b></td><td class="c"><b>135°</b></td><td class="c"><b>150°</b></td><td class="c"><b>15°</b></td>
+      <td>굴곡 135°가 AAOS로는 정상, AMA로는 15° 제한. TKA 후 평가에서 상반된 결론.<br>실측 평균(143.8°)은 <b>그 중간</b></td></tr>
+    <tr class="hl"><td><b>경추 회전</b></td><td class="c"><b>60°</b></td><td class="c"><b>80°</b></td><td class="c"><b>20°</b></td>
+      <td>편측 회전 65°가 AAOS 기준 정상 초과, AMA 기준 19% 제한. <b>편타손상 평가에서 결정적</b></td></tr>
+    <tr class="hl"><td><b>견관절 굴곡·외전</b></td><td class="c"><b>180°</b></td><td class="c"><b>150°</b></td><td class="c"><b>30°</b></td>
+      <td>국내 실무와 국제 교과서의 <b>최대 격차</b>. 「정상범위의 1/2 이하 제한」 판정 시 <b>분모가 달라져 장해등급이 바뀝니다</b></td></tr>
+    <tr class="hl"><td><b>견관절 내회전</b></td><td class="c"><b>70°</b></td><td class="c"><b>40°</b></td><td class="c"><b>30°</b></td>
+      <td>측정 자세 미명시가 겹쳐 <b>재현성이 가장 낮은</b> 항목</td></tr>
+  </table></div>
+  <div class="box crit"><b>⚠ 실무 결론</b>
+  <b>"정상 ROM 단일 표"는 존재하지 않습니다.</b> 어느 기준을 쓰느냐에 따라 장해율이 바뀝니다.
+  차트·진단서에 값을 적을 때 <b>반드시 "어느 기준인지"를 병기</b>하고,
+  <b>국내 서식에는 국민연금 「A.M.A식 표준각도표」</b>를, <b>국제 문헌·논문에는 AAOS</b>를 쓰되 혼용하지 마십시오.</div>
+</div>
+
+<div class="card">
+  <h2 class="st">전체 대조표</h2>
+  <p class="mute" style="margin-top:-4px">KR = 국민연금 「신체의 각관절 표준각도(A.M.A식) 종합표」 <span class="chip c-grn">확인</span> · 국내 장해평가의 사실상 기준.
+  <b>AMA Guides 원전과도 다릅니다</b> — "한국식 AMA"와 "AMA Guides"는 다른 표입니다.</p>
+  <h3 class="sst">상지</h3>
+  <div class="tw"><table>
+    <tr><th>동작</th><th class="c">AAOS</th><th class="c">KR (A.M.A식)</th><th class="c">차이</th></tr>
+    <tr class="hl"><td>견관절 굴곡</td><td class="c">180</td><td class="c">150</td><td class="c">🚩30</td></tr>
+    <tr class="hl"><td>견관절 신전</td><td class="c">60</td><td class="c">40</td><td class="c">🚩20</td></tr>
+    <tr class="hl"><td>견관절 외전</td><td class="c">180</td><td class="c">150</td><td class="c">🚩30</td></tr>
+    <tr><td>견관절 내전</td><td class="c">40*</td><td class="c">30</td><td class="c">10</td></tr>
+    <tr class="hl"><td>견관절 내회전</td><td class="c">70</td><td class="c">40</td><td class="c">🚩30</td></tr>
+    <tr><td>견관절 외회전</td><td class="c">90</td><td class="c">90</td><td class="c">일치</td></tr>
+    <tr><td>주관절 굴곡 / 신전</td><td class="c">150 / 0</td><td class="c">150 / 0</td><td class="c">일치</td></tr>
+    <tr><td>전완 회내 / 회외</td><td class="c">80 / 80</td><td class="c">80 / 80**</td><td class="c">일치</td></tr>
+    <tr><td>손목 굴곡</td><td class="c">80</td><td class="c">70</td><td class="c">10</td></tr>
+    <tr><td>손목 신전</td><td class="c">70</td><td class="c">60</td><td class="c">10</td></tr>
+    <tr><td>손목 요측 / 척측편위</td><td class="c">20 / 30</td><td class="c">20 / 30</td><td class="c">일치</td></tr>
+    <tr><td>무지 MCP 굴곡</td><td class="c">50</td><td class="c">60</td><td class="c">10</td></tr>
+    <tr><td>무지 IP 굴곡</td><td class="c">80</td><td class="c">80</td><td class="c">일치</td></tr>
+  </table></div>
+  <p class="mute">* 출처 논문 각주에 "AAOS 원전에 견관절 내전 값 없음"이라 명시.<br>
+  ** 국민연금 표는 이를 <b>"팔꿈치 내회전/외회전"</b>으로 명명합니다 — 실제로는 전완 회내/회외. <b>용어 주의.</b></p>
+
+  <h3 class="sst">척추</h3>
+  <div class="tw"><table>
+    <tr><th>동작</th><th class="c">AAOS</th><th class="c">AMA 5판</th><th class="c">KR</th><th class="c">실측(Apti 2023)</th></tr>
+    <tr><td>경추 굴곡</td><td class="c">45</td><td class="c">50</td><td class="c">45</td><td class="c">57.7±8.2</td></tr>
+    <tr class="hl"><td>경추 신전</td><td class="c">45</td><td class="c">60</td><td class="c">45</td><td class="c">59.1±10.2</td></tr>
+    <tr><td>경추 측굴(편측)</td><td class="c">45</td><td class="c">45</td><td class="c">45</td><td class="c">41–42</td></tr>
+    <tr class="hl"><td><b>경추 회전(편측)</b></td><td class="c">60</td><td class="c">80</td><td class="c">80</td><td class="c">70–71</td></tr>
+    <tr><td>흉추 굴곡 / 신전</td><td class="c">—</td><td class="c">45 / 0</td><td class="c" rowspan="4">흉요추 합산<br>전굴 90 · 후굴 30<br>측굴 30 · 회전 30</td><td class="c">—</td></tr>
+    <tr><td>흉추 회전(편측)</td><td class="c">—</td><td class="c">30</td><td class="c">35–47</td></tr>
+    <tr><td>요추 굴곡 / 신전</td><td class="c">—</td><td class="c">60 / 25</td><td class="c">69.9±14.5 / 40±10.2</td></tr>
+    <tr><td>요추 측굴 / 회전(편측)</td><td class="c">—</td><td class="c">25 / —</td><td class="c">36 / 38</td></tr>
+  </table></div>
+  <div class="box info"><b>AMA 5판 척추 기록표는 실제로 SFTR식 3-숫자를 씁니다</b> <span class="chip c-grn">확인</span><br>
+  경추 <code>신전-굴곡 60-0-50</code> · <code>측굴 45-0-45</code> · <code>회전 80-0-80</code><br>
+  흉추 <code>0-0-45</code> · 요추 <code>신전-굴곡 25-0-60</code> · <code>측굴 25-0-25</code></div>
+
+  <h3 class="sst">하지</h3>
+  <div class="tw"><table>
+    <tr><th>동작</th><th class="c">AAOS</th><th class="c">KR (A.M.A식)</th><th class="c">실측 (Roaas 1982)</th><th class="c">차이</th></tr>
+    <tr class="hl"><td><b>고관절 굴곡</b></td><td class="c">120</td><td class="c">100</td><td class="c">120.3±8.3</td><td class="c">🚩20</td></tr>
+    <tr class="hl"><td><b>고관절 신전</b></td><td class="c">30 (또는 20)</td><td class="c">30</td><td class="c"><b>9.4±5.3</b></td><td class="c">🚩실측 1/3</td></tr>
+    <tr><td>고관절 외전</td><td class="c">45 (또는 40)</td><td class="c">40</td><td class="c">38.8±7.0</td><td class="c">5</td></tr>
+    <tr><td>고관절 내전</td><td class="c">30 (또는 20)</td><td class="c">20</td><td class="c">30.5±7.3</td><td class="c">10</td></tr>
+    <tr><td>고관절 내회전</td><td class="c">45</td><td class="c">40</td><td class="c">32.6±8.2</td><td class="c">5</td></tr>
+    <tr><td>고관절 외회전</td><td class="c">45</td><td class="c">50</td><td class="c">33.6±6.8</td><td class="c">5</td></tr>
+    <tr class="hl"><td><b>무릎 굴곡</b></td><td class="c">135</td><td class="c">150</td><td class="c">143.8±6.4</td><td class="c">🚩15</td></tr>
+    <tr><td>무릎 신전</td><td class="c">0</td><td class="c">0</td><td class="c">−1.6±2.8</td><td class="c">일치</td></tr>
+    <tr><td>족관절 배굴</td><td class="c">20</td><td class="c">20***</td><td class="c">15.3±5.8</td><td class="c">일치</td></tr>
+    <tr class="hl"><td>족관절 저굴</td><td class="c">50</td><td class="c">40***</td><td class="c">39.7±7.5</td><td class="c">🚩10</td></tr>
+    <tr><td>후족부 내번 / 외번</td><td class="c">35 / 15</td><td class="c">30 / 20</td><td class="c">27.7 / 27.6</td><td class="c">5</td></tr>
+    <tr><td>무지 MTP 신전 / 굴곡</td><td class="c">70 / 45</td><td class="c">50 / 30</td><td class="c">—</td><td class="c">🚩20 / 15</td></tr>
+  </table></div>
+  <div class="box warn"><b>*** 한국 표 용어 함정</b>
+  국민연금 표는 발목을 <b>"굴곡 40° / 신전 20°"</b>로 표기합니다. 여기서 <b>"굴곡"=족저굴곡, "신전"=족배굴곡</b>입니다.
+  임상 용어와 방향이 반대로 읽히기 쉬우므로 전공의 교육 시 반드시 명시하십시오.</div>
+  <div class="box crit"><b>⚠ "AAOS 값" 자체가 출처마다 다릅니다 (C급 불일치)</b>
+  AAOS를 인용한다는 두 출처가 고관절 신전 20 vs 30, 고관절 내전 20 vs 30,
+  손가락 DIP 굴곡 <b>65 vs 90</b>(25° 차이)로 서로 다릅니다.
+  한 출처는 각주에서 <b>"손가락 값은 AAOS가 아니라 Richard &amp; Parry 자료에서 유도했다"</b>고 스스로 밝힙니다.
+  <b>"AAOS 값"이라고 단정하기 전에 원 소책자 확인이 필요합니다.</b></div>
+</div>
+
+<div class="card">
+  <h2 class="st">연령·성별 보정 — 절대치 적용을 금해야 하는 이유</h2>
+  ${lineChart({title:'견관절 굴곡 (우측, 능동) — Gill 2020, n=2,404',
+    x:['20–24','30–34','40–44','50–54','60–64','70–74','80–84'],
+    ymin:120,ymax:190,step:10,ref:180,refLabel:'AAOS 정상 180°',
+    series:[{n:'남',c:'#12314f',v:[170.8,167.9,165.5,165.0,157.4,146.8,140.2]},
+            {n:'여',c:'#0d7377',v:[164.7,164.4,163.7,160.1,146.5,144.8,133.7]}]})}
+  <div class="box crit"><b>⚠ 가장 강력한 교육 메시지</b>
+  <b>20대에서도 견관절 굴곡 평균이 165–171°로 AAOS의 180°에 미치지 못하며, 80대에서는 134–140°입니다.</b>
+  "180°"를 연령 무관 정상 기준으로 적용하면 <b>80대의 정상 어깨를 25% 이상 장해로 오판</b>합니다.
+  최연소→최고령 감소폭은 굴곡 남 43°, 여 40.6° / 외전 남 39.5°, 여 36.9°입니다.</div>
+
+  ${lineChart({title:'슬관절 굴곡 (수동) — Soucie 2011 (CDC), n=674',
+    x:['2–8세','9–19세','20–44세','45–69세'],
+    ymin:125,ymax:160,step:5,ref:150,refLabel:'AMA·국민연금 150°',
+    series:[{n:'여',c:'#0d7377',v:[152.6,142.3,141.9,137.8]},
+            {n:'남',c:'#12314f',v:[147.8,142.2,137.7,132.9]}]})}
+  <div class="box warn"><b>Soucie 2011 (CDC Joint ROM Study) 핵심 결론</b> <span class="chip c-grn">확인</span><br>
+  · 저자들 스스로 <i>"기존에 가장 흔히 쓰이는 정상치와 유의하게 달랐다"</i>고 기술.<br>
+  · <b>연령 효과 최대는 슬관절 굴곡</b> — 2–8세군 대비 45–69세군에서 평균 <b>15° 감소</b>.<br>
+  · <b>여성이 거의 모든 연령·관절에서 가동성 우위</b>(특히 족저굴곡, 회내, 회외).<br>
+  · <b>45–69세 남성의 주관절 신전 평균은 −0.7°</b> — 이 연령대 남성에서는 <b>약간의 신전제한이 오히려 평균</b>입니다.
+  AAOS의 "신전 0°"를 절대 기준으로 삼으면 정상 고령자를 병적으로 판정하게 됩니다.</div>
+  <div class="tw"><table>
+    <tr><th>연구</th><th>대상</th><th>핵심 소견</th></tr>
+    <tr><td><b>Soucie 2011</b><br>Haemophilia (CDC)</td><td>건강인 674명, 2–69세<br>수동 ROM, 물리치료사 9인</td><td>연령 효과 최대 = 슬관절 굴곡(15° 감소). 족관절 배굴·견관절 굴곡도 10° 이상 감소. 여성 우위</td></tr>
+    <tr><td><b>Roaas 1982</b><br>Acta Orthop Scand</td><td>건강 남성 30–40세<br>고관절 105·슬관절 90·족관절 96명</td><td>고관절 신전 실측 <b>9.4°</b>(교과서 30°) · 좌우 차 유의하지 않음 · SD 5–8°</td></tr>
+    <tr><td><b>Gill 2020</b><br>BMC MSK Disord</td><td>지역사회 2,404명, 20–91세</td><td>견관절 굴곡·외전이 <b>40° 가까이</b> 감소. 20대도 180°에 못 미침</td></tr>
+    <tr><td><b>Youdas 1992</b><br>Phys Ther (CROM)</td><td>건강인 337명, 11–97세</td><td><b>경추 신전 10년당 약 5° 감소</b>, 기타 동작 10년당 약 3° 감소. 여성이 신전 +5°, 측굴·회전 +2–4° 우위(굴곡은 성차 없음)</td></tr>
+    <tr><td><b>Boone &amp; Azen 1979</b><br>JBJS</td><td>정상 남성 109명, 18개월–54세<br>능동 ROM</td><td>1–19세군과 20–54세군 사이에 <b>대부분 동작에서 유의차</b> <span class="chip c-red">동작별 수치는 초록에 없어 미확인</span></td></tr>
+  </table></div>
+  <div class="box good"><b>결론 — 차트에 이렇게 쓰십시오</b>
+  ① <b>건측을 그 환자의 기준선</b>으로 삼는다 (좌우 비교가 절대 표준치보다 우선).<br>
+  ② 절대치를 쓸 때는 <b>기준(AAOS/AMA/국민연금)과 연령대를 함께 명시</b>한다.<br>
+  ③ 고령 환자에서 "정상치 대비 제한"이라고 쓰기 전에 <b>연령별 실측 평균</b>을 확인한다.</div>
+</div>
+
+<div class="card">
+  <h2 class="st">확인하지 못한 항목 — 원전 대조가 필요한 목록</h2>
+  <p class="mute" style="margin-top:-4px">정확성을 위해, 본 자료가 <b>추정으로 채우지 않고 비워둔</b> 항목을 명시합니다.</p>
+  <div class="tw"><table>
+    <tr><th>항목</th><th>이유 / 어디서 확인할 것인가</th></tr>
+    <tr><td>AAOS <i>Joint Motion</i>(1965) <b>원문 수치표</b></td><td>온라인 전문 없음. 대학도서관 실물 대조 — 본 자료의 AAOS 열은 모두 <b>2차 출처</b>입니다</td></tr>
+    <tr><td>AMA Guides 5판 Ch.16 / 6판 Ch.15·16 <b>사지 ROM 표</b></td><td>공식 사이트 접근 차단. Tables 15-31~15-36, 16-25</td></tr>
+    <tr><td>AMA 6판 §15.7 / §16.24 <b>반복측정·일관성 임계값</b></td><td>유료·차단. 감정서에 수치를 쓰려면 반드시 원전 확인</td></tr>
+    <tr><td>Norkin &amp; White 부록 A (AAOS vs AMA 대조표)</td><td>표 제목만 확인, 본문 유료. <b>각 장(4–13장) 말미에도 대조표가 있음</b></td></tr>
+    <tr><td>견관절 회전의 <b>표준 측정 자세</b>(90° 외전 vs 몸통 옆)</td><td>AAOS·AMA 원전이 어느 자세를 규정하는지 미확인. <b>본 조사의 최대 공백</b></td></tr>
+    <tr><td><b>대한의학회 장애평가기준(2016)</b> 본서의 ROM 조항</td><td>온라인 미공개. 본서 직접 확인 필요</td></tr>
+    <tr><td>맥브라이드표 관절별 <b>강직·운동제한 세목의 각도 구간</b></td><td>제공 사이트 접근 실패</td></tr>
+    <tr><td>ASSH 독자 정상 ROM 수치표</td><td>확인 실패 — 추정 기입하지 않음</td></tr>
+    <tr><td>전족부 내전/외전 AAOS 값</td><td>어떤 접근 가능 출처에서도 확보 실패</td></tr>
+    <tr><td>Silfverskiöld 양성의 <b>정확한 각도 역치</b></td><td>Physiopedia가 "명시되지 않음"이라고 밝힘. Molund 2018 원저 확인 필요</td></tr>
+  </table></div>
+</div>
+`;
+</script>
+<script>
+/* ===== 7. 퀴즈 ===== */
+const QZ=[
+{q:'무릎이 완전히 펴지지 않고 10° 굴곡 위치에서 시작하여 120°까지 굽는다. SFTR 표기는?',
+ o:['S 0-10-120','S 10-0-120','S 0-0-110','S 10-120'],a:0,
+ e:'0°에 <b>도달하지 못하므로</b> 첫 숫자는 0이 되고, <b>가운데 숫자가 실제 시작 위치(10°)</b>가 됩니다. <code>S 10-0-120</code>은 10° <b>과신전</b>을 뜻하는 전혀 다른 상태입니다.'},
+{q:'주관절이 10° 과신전되고 150°까지 굴곡된다. SFTR 표기는?',
+ o:['S 0-10-150','S 10-0-150','S 150-0-10','S 10-150'],a:1,
+ e:'과신전은 0°를 <b>지나</b> 반대 방향으로 가므로 <b>첫 번째 자리에 양수</b>로 적고 가운데는 0입니다. 이것이 중립영점법의 핵심 이득입니다.'},
+{q:'손목이 신전 20° 위치에서 강직되었다. AMA/SFTR 표기는?',
+ o:['Wrist (S): 0-20','Wrist (S): 20-0','Wrist (S): 20-20-0','Wrist (S): 20-0-20'],a:1,
+ e:'AMA 5판 부록 원문 예시입니다. <b>강직은 숫자 2개</b>로 적으며, 신전은 0의 <b>왼쪽</b>이므로 <code>20-0</code>. 굴곡 20° 위치 강직이면 <code>0-20</code>입니다. ※ 독일 Neutral-0-Methode는 숫자 3개(<code>20/20/0</code>)로 적어 전통이 다릅니다.'},
+{q:'SFTR에서 "F"(전두면)에 배정되지 <b>않는</b> 운동은?',
+ o:['견관절 외전/내전','손목 요측/척측 편위','체간 측방굴곡','견관절 수평내전'],a:3,
+ e:'몸 앞을 가로지르는 견관절 수평 내전/외전은 <b>T(수평면)</b>에 기록합니다. 그래서 정상 견관절의 F 표기가 <code>F 170-0-0</code>처럼 <b>마지막 숫자가 0</b>이 되는 것입니다 — 순수 전두면 내전은 체간에 막히기 때문입니다.'},
+{q:'SFTR에서 첫 번째 숫자에 오는 운동 방향으로 <b>틀린</b> 것은?',
+ o:['신전','외전','내회전','회외'],a:2,
+ e:'첫 숫자는 <b>몸에서 멀어지는 방향</b> — 신전·외전·<b>외</b>회전·회외·외번·좌측입니다. <b>내</b>회전은 셋째 숫자입니다.'},
+{q:'슬관절 굴곡을 잴 때 고정팔을 <b>대전자</b>에 맞추는 이유는?',
+ o:['대퇴사두근 긴장을 배제하기 위해','대퇴골 자체의 위치를 측정에 반영하기 위해','슬개골 이동을 보정하기 위해','비골두 촉지가 어려워서'],a:1,
+ e:'고정팔이 대퇴에만 걸쳐 있으면 환자가 <b>고관절을 더 굴곡시켜(무릎을 가슴으로 당겨)</b> 슬관절 굴곡을 과대평가할 수 있습니다. 대전자까지 정렬해야 대퇴 자체의 위치가 반영됩니다.'},
+{q:'족관절 배측굴곡 측정에서 <b>가장 큰 오차원</b>은?',
+ o:['무릎 위치를 기록하지 않는 것','중족부 배굴과 거골하 회내를 진짜 배굴로 오독하는 것','각도계 크기','환자의 통증'],a:1,
+ e:'발을 밀 때 종아치가 무너지고 전족부가 들리면, <b>talocrural 배굴이 전혀 없어도 각도계 값은 커집니다.</b> <b>거골하관절 중립 잠금 + 종골을 잡고 미는 것</b>이 필수입니다. (무릎 위치 미기록도 흔한 오류이지만 오차 크기는 이쪽이 더 큽니다.)'},
+{q:'슬관절 신전 시 "무릎이 완전히 펴지지 않는" 소견에서, <b>AROM과 PROM을 반드시 따로 적어야 하는</b> 이유는?',
+ o:['통증 때문','신전지연(extension lag)과 굴곡구축(flexion contracture)을 구분하기 위해','보험 청구 때문','종말감이 달라서'],a:1,
+ e:'<code>AROM 15–130° / PROM 5–135°</code>는 <b>신전지연 10°(대퇴사두근 문제) + 굴곡구축 5°(관절 문제)</b>를 뜻합니다. 한 줄로만 적으면 이 둘이 사라집니다 — 치료 방침이 완전히 달라지는 구분입니다.'},
+{q:'고관절 굴곡은 왜 <b>무릎을 굽힌 상태</b>로 측정하는가?',
+ o:['대퇴직근 긴장을 배제하려고','햄스트링 긴장을 배제하려고','골반 후방경사를 막으려고','통증을 줄이려고'],a:1,
+ e:'햄스트링은 이관절근입니다. 무릎을 편 채 고관절을 굴곡시키면 햄스트링 긴장이 <b>약 90°</b>에서 운동을 제한합니다. 반대로 <b>고관절 신전</b>은 대퇴직근 긴장을 피하려고 <b>무릎을 편 상태</b>로 측정합니다.'},
+{q:'Silfverskiöld test에서 <b>무릎 굴곡 시 배굴이 유의하게 증가</b>했다. 해석은?',
+ o:['가자미근성 equinus','비복근 단독 구축','거골하 강직','정상'],a:1,
+ e:'양성 = <b>비복근(이관절근) 단독 구축</b> → gastrocnemius recession(Strayer) 고려. 두 자세 모두 동일하게 제한되면 음성 = 가자미근성 equinus 또는 골성 차단 → 아킬레스건 연장술을 고려합니다.'},
+{q:'견관절 외전 측정에서 <b>반드시 외회전</b>시키는 이유는?',
+ o:['견갑골 상방회전을 유도하려고','대결절이 견봉 아래를 통과하도록','삼각근을 이완시키려고','고정팔 정렬을 쉽게 하려고'],a:1,
+ e:'외회전하지 않으면 <b>대결절이 견봉에 충돌</b>하여 ROM이 거짓으로 감소합니다. 정상인에게서도 재현되는 현상입니다.'},
+{q:'견관절의 <b>관절낭 패턴(capsular pattern)</b>은?',
+ o:['굴곡 &gt; 외전 &gt; 신전','외회전 &gt; 외전 &gt; 내회전','내회전 &gt; 굴곡 &gt; 외전','모든 방향 균등 제한'],a:1,
+ e:'<b>외회전이 가장 심하게 제한</b>되고 외전, 내회전 순입니다. 유착성 관절낭염 진단의 핵심 — 각도만 적고 <b>제한의 순서</b>를 보지 않으면 놓칩니다.'},
+{q:'주관절 <b>신전</b>의 정상 종말감은?',
+ o:['Soft (연부조직 접근)','Firm (관절낭성)','Hard (골성)','Empty'],a:2,
+ e:'주두돌기가 주두와에 충돌하는 <b>골성(bone-to-bone)</b>입니다. 반대로 주관절 <b>굴곡</b>은 이두근·굴근 근복이 닿는 <b>soft</b>입니다.'},
+{q:'손목 <b>요측편위</b>의 정상 종말감이 hard(골성)인 이유는?',
+ o:['척골두가 삼각골에 닿아서','요골 경상돌기가 주상골에 충돌해서','유두골이 요골에 닿아서','신전근 건이 긴장해서'],a:1,
+ e:'<b>요골 경상돌기 ↔ 주상골</b> 충돌. Cyriax가 든 정상 골성 종말감의 대표 예이며, 요측편위 정상치가 20°로 척측편위(30°)보다 작은 이유이기도 합니다.'},
+{q:'ROM 측정 중 물리적 저항은 없는데 환자가 <b>심한 통증</b>으로 운동을 중단시켰다. 이 종말감은?',
+ o:['Springy block','Muscle spasm','Empty','Boggy'],a:2,
+ e:'<b>Empty end-feel</b> — 급성 점액낭염, 급성 관절염증, <b>종양·농양</b>을 시사하는 <b>적색기</b>입니다. 반드시 원인 규명이 필요합니다.'},
+{q:'슬관절 신전이 정상 범위 도달 전에 <b>튕기는 느낌</b>으로 막혔다. 가장 의심되는 것은?',
+ o:['반월상연골 파열 또는 관절내 유리체','유착성 관절낭염','골극','관절삼출'],a:0,
+ e:'<b>Springy block(탄성차단)</b>입니다. 각도만 적고 종말감을 적지 않으면 이 진단이 차트에서 사라집니다.'},
+{q:'경직 사지에서 <b>매우 느린 속도(V1)</b>로 측정한 각도는 무엇인가?',
+ o:['R1 — 동적 성분','R2 — 진짜 관절 가동범위','MAS 등급','AROM'],a:1,
+ e:'<b>R2 = V1(최대한 느리게)에서의 전 가동범위 = 구축 성분(진짜 PROM)</b>. R1은 빠른 속도에서 catch가 걸리는 각도이며, <b>R2 − R1 = 경직의 동적 성분</b>입니다.'},
+{q:'뇌졸중 환자의 족관절에서 <b>R2 − R1이 크게</b> 나왔다. 시사하는 치료 방향은?',
+ o:['연속 캐스팅 또는 수술적 연장','보툴리눔독소·신경블록 반응을 기대할 수 있음','관찰만','근력강화 운동'],a:1,
+ e:'R2−R1이 크다 = <b>동적 경직 성분이 큼</b> → 화학적 신경차단에 반응할 여지가 큽니다. 반대로 R2 자체가 작고 R2−R1이 작으면 <b>고정 구축</b>으로, 캐스팅·수술 대상입니다.'},
+{q:'서로 다른 두 의사가 잰 <b>고관절 내회전</b>이 15° 차이가 났다. 올바른 해석은?',
+ o:['유의한 악화이다','유의한 호전이다','MDC(20–25°) 이내이므로 변화라고 말할 수 없다','즉시 영상검사가 필요하다'],a:2,
+ e:'고관절 내회전의 검사자 간 MDC는 <b>20–25°</b>입니다(Poulsen 2012). 추적 관찰은 <b>같은 사람이, 같은 기구로, 같은 자세에서</b> 해야 합니다.'},
+{q:'TKA 후 슬관절 능동굴곡 추적에서, <b>검사자가 바뀌었을 때</b>의 MDC는?',
+ o:['약 4°','약 6°','약 16°','약 25°'],a:2,
+ e:'검사자 내 6.2° → <b>검사자 간 15.7°</b>로 2.5배 커집니다(Jakobsen 2010). 원 논문은 "반복 측정은 <b>같은 치료사</b>가 기록해야 한다"고 결론했습니다.'},
+{q:'AMA Guides <b>6판</b>의 척추 장해평가에 대해 맞는 것은?',
+ o:['이중 경사계로 ROM을 측정한다','ROM을 장해 정의 근거로 사용하지 않는다','SLR 타당성 검사가 필수다','3회 연속 측정 평균을 쓴다'],a:1,
+ e:'6판 Chapter 17은 <i>"현재 근거는 ROM을 특정 병리나 영구적 기능상태의 신뢰할 만한 지표로 지지하지 않는다"</i>며 ROM을 <b>폐지</b>하고 진단기반장해(DBI)를 씁니다. <b>이중 경사계·SLR 타당성 검증은 AMA 5판(및 4판)의 요건</b>입니다 — 흔히 혼동되는 지점입니다.'},
+{q:'AMA 5판 척추 ROM에서, 평균이 <b>50°를 넘는</b> 경우의 일관성 기준은?',
+ o:['평균 ±5° 이내','평균의 ±10% 이내','평균 ±15° 이내','기준 없음'],a:1,
+ e:'평균 &lt;50°이면 <b>±5° 이내</b>, &gt;50°이면 <b>평균의 ±10% 이내</b>여야 합니다. 연속 3회를 얻기 위해 최대 6회까지 반복할 수 있습니다.'},
+{q:'AMA 6판에서 사지 ROM의 중증도 구분 중 "Moderate"에 해당하는 것은?',
+ o:['정상의 60–90%','정상의 30–60%','정상의 &lt;30%','강직'],a:1,
+ e:'Mild 60–90% / <b>Moderate 30–60%</b> / Severe &lt;30% / Very severe = 강직. <b>6판은 정상치를 절대 각도가 아니라 "정상 대비 백분율"로 운용</b>한다는 점이 5판과의 근본적 차이입니다.'},
+{q:'국민연금 「신체장애 운동범위 측정기준」의 원칙으로 맞는 것은?',
+ o:['원칙적으로 능동운동을 적용한다','원칙적으로 수동운동을 적용하되, 신경마비 등에서는 능동운동을 측정한다','SFTR 3-숫자 표기를 사용한다','항상 편측 각도만 본다'],a:1,
+ e:'고시 원문: <i>"운동기능장애는 <b>원칙적으로 수동운동</b>에 의한 운동가능범위를 적용한다"</i>, 신경마비 등에서는 <i>"수동운동은 고려하지 아니하고 <b>능동운동의 각도를 측정</b>한다"</i>. 또한 국내 기준은 <b>방향별 각도를 합산하여 정상 합계와 비교</b>하며 SFTR 표기를 규정하지 않습니다.'},
+{q:'견관절 굴곡 150°인 환자. 국민연금 A.M.A식 기준과 AAOS 기준에서 각각 어떻게 판정되는가?',
+ o:['둘 다 정상','둘 다 제한','국민연금 기준 정상, AAOS 기준 30° 제한','국민연금 기준 제한, AAOS 기준 정상'],a:2,
+ e:'국민연금 표준각도는 견관절 굴곡 <b>150°</b>, AAOS는 <b>180°</b>입니다. <b>같은 값이 기준에 따라 정상이 되기도, 제한이 되기도 합니다.</b> 「정상범위의 1/2 이하 제한」 판정에서는 분모가 달라져 장해등급 자체가 바뀝니다.'},
+{q:'고관절 신전의 <b>실측 평균</b>(Roaas 1982, 건강 남성 30–40세)은?',
+ o:['약 30°','약 20°','약 9°','약 45°'],a:2,
+ e:'<b>9.4 ± 5.3°</b>로, 교과서 정상치 30°의 <b>약 1/3</b>입니다. 고관절 신전은 "교과서와 실측의 괴리가 가장 큰 동작"입니다.'},
+{q:'80세 환자의 견관절 굴곡이 140°였다. AAOS 180°를 기준으로 "22% 제한"이라고 기록하는 것의 문제는?',
+ o:['문제 없다','80대 남녀 평균이 134–140°이므로 연령 기준으로는 정상 범위이다','능동/수동을 안 적었다','좌우 비교를 안 했다'],a:1,
+ e:'Gill 2020(n=2,404)에서 <b>80–84세 평균은 남 140.2°, 여 133.7°</b>입니다. 연령 보정 없이 절대치를 적용하면 <b>정상 고령자를 장해로 오판</b>합니다. (물론 능동/수동 표기와 좌우 비교도 필요하지만, 여기서 결론을 바꾸는 것은 연령 보정입니다.)'},
+{q:'요추 굴곡 측정법 중 <b>신뢰도가 가장 좋은</b> 것으로 보고된 방법은?',
+ o:['이중 경사계(AMA 채택)','Modified-Modified Schober(줄자)','Fingertip-to-floor','고관절 각도계법'],a:1,
+ e:'Williams(Phys Ther 1993): MMS 재검사 r <b>0.78–0.89</b>, 검사자간 0.72 vs 이중 경사계 재검사 r <b>0.13–0.87</b>, 검사자간 0.60. 저자들은 "이중 경사계 기법은 개선이 필요하다"고 결론했습니다. <b>장해평가에서는 규정상 경사계를 쓰지만, 임상 추적에서는 MMS가 더 재현성이 좋습니다.</b>'},
+{q:'경추 <b>회전</b>을 경사계로 측정할 때 앙와위를 권하는 이유는?',
+ o:['환자가 편하기 때문','체간 회전을 배제할 수 있기 때문','중력 보정이 되기 때문','환축추 관절 보호'],a:1,
+ e:'앉은 자세에서는 <b>체간 회전을 배제할 수 없습니다.</b> 앙와위에서는 몸통이 침대에 고정되므로 순수 경추 회전에 가까워집니다.'},
+{q:'거골하 내번/외번을 <b>좌위 전면법</b>으로 측정하고 "거골하 ROM"이라 보고했다. 문제는?',
+ o:['문제 없다','중족부 운동이 포함되어 약 2배 과대평가된다','거골하 운동이 배제되어 과소평가된다','외번만 과대평가된다'],a:1,
+ e:'검증 연구에서 총 내번–외번 범위가 <b>좌위 전면법 43.1±10.1° vs 복와위 후면법 24.2±6.4°</b>였습니다. 전면법은 <b>거골하+중족(transverse tarsal) 복합 운동</b>입니다. 어느 방법으로 쟀는지 반드시 기록하십시오.'},
+{q:'고관절 회전 ROM은 앉은 자세와 복와위 중 어느 쪽이 더 큰가?',
+ o:['앉은 자세(굴곡위)','복와위(신전위)','동일하다','개인차로 일정하지 않다'],a:1,
+ e:'통념과 반대로, 건강 성인 151명 연구에서 <b>"복와위가 앉은 자세보다 유의하게 컸다"</b>고 보고되었습니다. 신뢰도는 두 자세가 동등하므로 어느 쪽을 써도 되지만, <b>두 자세의 값을 서로 비교해서는 안 되며 반드시 자세를 기록</b>해야 합니다.'},
+{q:'Thomas test에서 반대측 고관절을 <b>과도하게</b> 굴곡시키면?',
+ o:['위음성(구축을 놓침)','위양성(가짜 구축)','영향 없음','통증만 증가'],a:1,
+ e:'골반이 과도하게 후방경사되어 <b>위양성(가짜 구축)</b>이 됩니다. 반대로 검사측 ASIS 고정을 소홀히 하면 골반이 전방경사되어 <b>위음성</b>이 됩니다.'},
+{q:'국민연금 표에 "발목: 굴곡 40°, 신전 20°"라고 되어 있다. 올바른 해석은?',
+ o:['배굴 40°, 저굴 20°','저굴 40°, 배굴 20°','굴곡·신전 모두 시상면 외 운동','오기이다'],a:1,
+ e:'국내 표기에서 발목 <b>"굴곡"=족저굴곡, "신전"=족배굴곡</b>입니다. 임상 용어와 방향이 반대로 읽히기 쉬워 전공의가 가장 많이 혼동하는 부분입니다. 같은 표에서 전완 회내/회외를 "팔꿈치 내회전/외회전"으로 부르는 것도 같은 종류의 함정입니다.'},
+{q:'전완 회내 측정에서 이동팔을 <b>손등</b>에 대고 쟀다. 무엇이 문제인가?',
+ o:['문제 없다','손목의 굴곡·편위가 회전 값에 섞여 들어간다','회내근이 이완된다','축이 달라진다'],a:1,
+ e:'이동팔은 <b>손이 아니라 원위 전완 표면</b>(회내는 배측, 회외는 수장측)에 정렬해야 합니다. 연필법도 간편하지만 같은 이유로 손목 움직임이 오차로 들어갑니다. 그리고 <b>팔꿈치가 몸에서 떨어지는 것</b>이 가장 큰 오차원입니다.'},
+{q:'ROM 추적 중 각도계에서 스마트폰 앱으로 기구를 바꾸었다. 주의할 점은?',
+ o:['앱이 더 정확하므로 문제 없다','기구 간 95% 일치한계가 실제 인체에서 ±11°까지 벌어지므로 추적 중 기구 변경은 피해야 한다','앱은 척추 회전에만 쓸 수 있다','상관없다'],a:1,
+ e:'표준 각도판에서는 모든 기구가 ICC&gt;0.99지만 <b>실제 인체 어깨 굴곡에서는 95% LOA가 −11.0 ~ +11.4°</b>로 벌어집니다(Sci Rep 2023). 또한 스마트폰 앱은 <b>척추 축회전에서 부적합</b>하다는 보고가 많습니다(9편 중 4편).'}
+];
+(function(){
+  const el=document.getElementById('s-quiz');
+  let done=0, right=0;
+  el.innerHTML=`<div class="score" id="qScore"><span>진행 0 / ${QZ.length}</span><span>정답 0</span></div>
+   <div class="card"><h2 class="st">표기·측정 확인 퀴즈 (${QZ.length}문항)</h2>
+   <p class="mute" style="margin-top:-4px">한 번 고르면 정답과 해설이 열립니다. 틀린 문항의 해설을 반드시 읽으십시오.</p></div>
+   ${QZ.map((q,i)=>`<div class="q" data-i="${i}"><div class="num">Q${i+1}</div><div class="qt">${q.q}</div>
+     ${q.o.map((o,j)=>`<button class="opt" data-j="${j}">${String.fromCharCode(9312+j)} ${o}</button>`).join('')}
+     <div class="exp"><b>정답: ${String.fromCharCode(9312+q.a)}</b> — ${q.e}</div></div>`).join('')}`;
+  el.addEventListener('click',e=>{
+    const b=e.target.closest('.opt'); if(!b)return;
+    const card=b.closest('.q'); if(card.classList.contains('done'))return;
+    const i=+card.dataset.i, j=+b.dataset.j, a=QZ[i].a;
+    card.classList.add('done'); done++; if(j===a) right++;
+    card.querySelectorAll('.opt').forEach((o,k)=>{
+      if(k===a)o.classList.add('ok'); else if(k===j)o.classList.add('no');
+    });
+    const sc=document.getElementById('qScore');
+    sc.innerHTML=`<span>진행 ${done} / ${QZ.length}</span><span>정답 ${right} (${Math.round(right/done*100)}%)</span>`;
+  });
+})();
+
+/* ===== 8. 근거 ===== */
+document.getElementById('s-ref').innerHTML=`
+<div class="card">
+  <h2 class="st">표기법 · 기준 (Vancouver)</h2>
+  <ol class="reflist">
+    <li>Cave EF, Roberts SM. A method for measuring and recording joint function. J Bone Joint Surg. 1936;18-A:455-466. <span class="evid">※ 종료 페이지가 문헌마다 455–459 / 455–466으로 엇갈림</span></li>
+    <li>American Academy of Orthopaedic Surgeons. Joint Motion: Method of Measuring and Recording. Chicago: AAOS; 1965.</li>
+    <li>Gerhardt JJ, Russe OA. International SFTR Method of Measuring and Recording Joint Motion (ISOM). Bern: Hans Huber; 1975.</li>
+    <li>Gerhardt JJ. Clinical measurements of joint motion and position in the neutral-zero method and SFTR recording: basic principles. Int Rehabil Med. 1983;5(4).</li>
+    <li>Gerhardt JJ, Rondinelli RD. Goniometric techniques for range-of-motion assessment. Phys Med Rehabil Clin N Am. 2001;12(3):507-528.</li>
+    <li>Gerhardt JJ, Cocchiarella L, Lea RD. The Practical Guide to Range of Motion Assessment. Chicago: AMA Press; 2002.</li>
+    <li>American Medical Association. Guides to the Evaluation of Permanent Impairment. 5th ed. Chicago: AMA Press; 2001. (부록: SFTR 표기 규칙)</li>
+    <li>American Medical Association. Guides to the Evaluation of Permanent Impairment. 6th ed. Chicago: AMA Press; 2008.</li>
+    <li>Schwarz N, Höcker K, Jung I. Ist die SFTR-Messung am Schultergelenk noch aktuell? Acta Chir Austriaca. 2000;32(1):31-34.</li>
+    <li>Simmel S, et al. Neutral-0-Methode. Trauma Berufskrankh. 2017.</li>
+    <li>국민연금공단. 신체장애 운동범위 측정기준 — 신체의 각관절 표준각도(A.M.A식) 종합표.</li>
+    <li>산업재해보상보험법 시행규칙 [별표 5] 신체부위별 장해등급 판정에 관한 세부기준.</li>
+    <li>황선철, 이경석. 대한의학회 장애평가 기준. J Korean Med Assoc. 2009;52(6):573-578.</li>
+    <li>맥브라이드 노동능력상실 평가법: 왜 아직도 가장 많이 사용되는가? J Korean Orthop Assoc. 2020;55(5):366-.</li>
+  </ol>
+  <h2 class="st" style="margin-top:18px">정상치 · 연령/성별</h2>
+  <ol class="reflist" start="15">
+    <li>Soucie JM, et al. Range of motion measurements: reference values and a database for comparison studies. Haemophilia. 2011;17(3):500-507. (CDC Joint ROM Study, n=674)</li>
+    <li>Roaas A, Andersson GB. Normal range of motion of the hip, knee and ankle joints in male subjects, 30-40 years of age. Acta Orthop Scand. 1982;53(2):205-208.</li>
+    <li>Boone DC, Azen SP. Normal range of motion of joints in male subjects. J Bone Joint Surg Am. 1979;61(5):756-759.</li>
+    <li>Gill TK, et al. Shoulder range of movement in the general population: age and gender stratified normative data using a community-based cohort. BMC Musculoskelet Disord. 2020;21:676.</li>
+    <li>Youdas JW, et al. Normal range of motion of the cervical spine: an initial goniometric study. Phys Ther. 1992;72(11):770-780.</li>
+    <li>Apti A, et al. Normative values of cervical and lumbar range of motion in healthy young adults. J Turkish Spinal Surg. 2023;34(3):113-.</li>
+    <li>Norkin CC, White DJ. Measurement of Joint Motion: A Guide to Goniometry. 5th ed. Philadelphia: F.A. Davis; 2016.</li>
+  </ol>
+  <h2 class="st" style="margin-top:18px">신뢰도 · 측정기법</h2>
+  <ol class="reflist" start="22">
+    <li>Boone DC, et al. Reliability of goniometric measurements. Phys Ther. 1978;58(11):1355-1360.</li>
+    <li>Gajdosik RL, Bohannon RW. Clinical measurement of range of motion: review of goniometry emphasizing reliability and validity. Phys Ther. 1987;67(12):1867-1872.</li>
+    <li>Chapleau J, et al. Validity of goniometric elbow measurements: comparative study with a radiographic method. Clin Orthop Relat Res. 2011;469(11):3134-3140.</li>
+    <li>Poulsen E, et al. Reproducibility of range of motion and muscle strength measurements in patients with hip osteoarthritis — an inter-rater study. BMC Musculoskelet Disord. 2012;13:242.</li>
+    <li>Jakobsen TL, et al. Reliability of knee joint range of motion and circumference measurements after total knee arthroplasty: does tester experience matter? Physiother Res Int. 2010;15(2):126-134.</li>
+    <li>Kolber MJ, Hanney WJ. The reliability and concurrent validity of shoulder mobility measurements using a digital inclinometer and goniometer. Int J Sports Phys Ther. 2012;7(3):306-313.</li>
+    <li>Williams R, et al. Reliability of the modified-modified Schöber and double inclinometer methods for measuring lumbar flexion and extension. Phys Ther. 1993;73(1):26-37.</li>
+    <li>van de Pol RJ, et al. Inter-rater reliability for measurement of passive physiological range of motion of upper extremity joints is better if instruments are used: a systematic review. J Physiother. 2010;56(1):7-17.</li>
+    <li>van Trijffel E, et al. Inter-rater reliability for measurement of passive physiological movements in lower extremity joints is generally low: a systematic review. J Physiother. 2010;56(4):223-235.</li>
+    <li>Keogh JWL, et al. Reliability and validity of clinically accessible smartphone applications to measure joint range of motion: a systematic review. PLoS One. 2019;14(5):e0215806.</li>
+    <li>Kiatkulanusorn S, et al. Analysis of the concurrent validity and reliability of five common clinical goniometric devices. Sci Rep. 2023;13:20931.</li>
+    <li>Reliability of two goniometric methods of measuring active inversion and eversion range of motion at the ankle. BMC Musculoskelet Disord. 2006;7:60.</li>
+    <li>Hip rotation range of motion in sitting and prone positions in healthy Japanese adults. J Phys Ther Sci. 2015;27(2):441-445.</li>
+  </ol>
+  <div class="box warn" style="margin-top:14px"><b>인용 시 주의</b>
+  본 자료의 <b>AAOS 열은 모두 2차 출처</b>에서 온 것이며, AAOS 1965년 소책자 원문은 확인하지 못했습니다.
+  논문·감정서에 AAOS 값을 인용하실 때는 반드시 원 소책자 또는 Norkin &amp; White 부록 A를 직접 대조하십시오.</div>
+</div>
+`;
+</script>
+
+</body>
+</html>
