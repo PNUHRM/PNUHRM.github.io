@@ -225,7 +225,7 @@ function renderSavedList(){
   list.innerHTML = keys.map(k => {
     const r = all[k];
     return `<div class="saved-item"><span class="nm">${r.year}년 ${r.month}월</span>
-      <span class="tag">${r.schedule.filter(s=>s.name).length}건</span>
+      <span class="tag">${r.schedule.filter(s=>s.name).length}일${r.weMult>1?' · 일숙직 2인':''}</span>
       <button onclick="viewMonth('${k}')">보기</button>
       <button class="del" onclick="deleteMonth('${k}')" title="삭제">✕</button></div>`;
   }).join('');
@@ -319,8 +319,9 @@ function generate(){
         if(f.length) pool = f;
       }
       pool.sort((a,b)=>{
-        const ca = type==='we' ? (a.carryWe+a.we) : (a.carryWd+a.wd);
-        const cb = type==='we' ? (b.carryWe+b.we) : (b.carryWd+b.wd);
+        // 주말이월은 횟수 단위(일숙직 2회)라 이번 달 주말 일수도 2배로 비교
+        const ca = type==='we' ? (a.carryWe+a.we*2) : (a.carryWd+a.wd);
+        const cb = type==='we' ? (b.carryWe+b.we*2) : (b.carryWd+b.wd);
         return ca - cb || a.last - b.last || a.idx - b.idx;
       });
       chosen = pool[0];
@@ -335,6 +336,7 @@ function generate(){
     people: people.map(p=>({name:p.name, carryWd:p.carryWd, carryWe:p.carryWe})),
     manual: parseNames(document.getElementById('manual').value),
     overrides: {},   // day -> 이름 (수동 교체)
+    weMult: 2,       // 주말·공휴일 = 일직+숙직 2회 (같은 사람). 이 필드 없는 옛 기록은 1회로 집계
   };
   savePeople();
   renderOutput(rec);   // renderOutput 내부에서 최종본/이월값 계산 후 저장
@@ -360,7 +362,9 @@ function computeEffective(rec){
   // 이월: 자동 멤버만 정규화
   const carryMap = {}; rec.people.forEach(p=>carryMap[p.name]={cwd:p.carryWd, cwe:p.carryWe});
   const finalsWd = autoNames.map(n=>carryMap[n].cwd + cnt[n].wd);
-  const finalsWe = autoNames.map(n=>carryMap[n].cwe + cnt[n].we);
+  // 주말·공휴일은 weMult배(일숙직 2회)로 세고, 주말이월도 그 횟수 단위로 넘긴다
+  const weMult = rec.weMult || 1;
+  const finalsWe = autoNames.map(n=>carryMap[n].cwe + cnt[n].we * weMult);
   const minWd = finalsWd.length ? Math.min(...finalsWd) : 0;
   const minWe = finalsWe.length ? Math.min(...finalsWe) : 0;
 
@@ -368,11 +372,12 @@ function computeEffective(rec){
     const isAuto = i < autoNames.length;
     return {
       name:n, manual:!isAuto, wd:cnt[n].wd, we:cnt[n].we,
+      weDuty: cnt[n].we * weMult, total: cnt[n].wd + cnt[n].we * weMult,
       nextWd: isAuto ? (carryMap[n].cwd + cnt[n].wd) - minWd : null,
-      nextWe: isAuto ? (carryMap[n].cwe + cnt[n].we) - minWe : null,
+      nextWe: isAuto ? (carryMap[n].cwe + cnt[n].we * weMult) - minWe : null,
     };
   });
-  return { eff, summary, allNames, autoNames, manualNames };
+  return { eff, summary, allNames, autoNames, manualNames, weMult };
 }
 
 // 직전 달 키 (연/월 -1)
@@ -388,7 +393,8 @@ function computeNextCarry(rec){
 function renderOutput(rec){
   if(!rec.overrides) rec.overrides={};
   const {year, month, warnings, autoHolidayList} = rec;
-  const { eff, summary, allNames, manualNames } = computeEffective(rec);
+  const { eff, summary, allNames, manualNames, weMult } = computeEffective(rec);
+  const split = weMult > 1;   // 주말·공휴일을 일직/숙직 두 칸으로 표기
   const out = document.getElementById('output');
   let html='';
 
@@ -402,7 +408,9 @@ function renderOutput(rec){
 
   // 일정표 (드롭다운 편집)
   html += `<div class="card"><h2>${year}년 ${month}월 당직 일정</h2>`;
-  html += `<table><thead><tr><th>날짜</th><th>요일</th><th>구분</th><th>당직자 (드롭다운으로 교체)</th></tr></thead><tbody>`;
+  html += split
+    ? `<table><thead><tr><th>날짜</th><th>요일</th><th>구분</th><th>일직</th><th>숙직 (드롭다운으로 교체, 일직도 같이 바뀜)</th></tr></thead><tbody>`
+    : `<table><thead><tr><th>날짜</th><th>요일</th><th>구분</th><th>당직자 (드롭다운으로 교체)</th></tr></thead><tbody>`;
   for(const r of eff){
     const rowcls = r.type==='we' ? 'we' : (r.dow===6?'sat':'');
     const gubun = r.type==='we' ? (r.isHol?'공휴일':'주말') : '평일';
@@ -411,7 +419,8 @@ function renderOutput(rec){
       .concat(allNames.map(n=>`<option value="${escAttr(n)}" ${overridden && r.eff===n ? 'selected':''}>${n}</option>`))
       .join('');
     const struck = overridden && r.base ? `<span class="struck">${r.base}</span>` : '';
-    html += `<tr class="${rowcls} ${overridden?'ovr-on':''}"><td>${month}/${r.day}</td><td>${KO_DOW[r.dow]}</td><td>${gubun}</td>
+    const dayCell = split ? `<td>${r.type==='we' ? (r.eff||'') : ''}</td>` : '';
+    html += `<tr class="${rowcls} ${overridden?'ovr-on':''}"><td>${month}/${r.day}</td><td>${KO_DOW[r.dow]}</td><td>${gubun}</td>${dayCell}
       <td style="text-align:left"><select class="ovr-sel ovr" data-day="${r.day}">${opts}</select>${struck}</td></tr>`;
   }
   html += `</tbody></table>`;
@@ -425,25 +434,38 @@ function renderOutput(rec){
 
   // 요약
   html += `<div class="grid2">`;
-  html += `<div class="card"><h2>이번 달 배정 횟수</h2><table><thead><tr><th>당직자</th><th>평일</th><th>주말·공휴</th><th>합계</th></tr></thead><tbody>`;
-  for(const s of summary){
-    const tag = s.manual ? '<span class="badge">수동</span>' : '';
-    html += `<tr><td style="text-align:left">${s.name}${tag}</td><td>${s.wd}</td><td>${s.we}</td><td><b>${s.wd+s.we}</b></td></tr>`;
+  if(split){
+    html += `<div class="card"><h2>이번 달 배정 횟수</h2><table><thead><tr><th>당직자</th><th>평일 숙직</th><th>주말·공휴 일수</th><th>주말·공휴 일+숙직</th><th>합계 (횟수)</th></tr></thead><tbody>`;
+    for(const s of summary){
+      const tag = s.manual ? '<span class="badge">수동</span>' : '';
+      html += `<tr><td style="text-align:left">${s.name}${tag}</td><td>${s.wd}</td><td>${s.we}일</td><td>${s.weDuty}</td><td><b>${s.total}</b></td></tr>`;
+    }
+    html += `</tbody></table><div class="hint">주말·공휴일은 일직+숙직 2회로 셉니다 (평일 숙직 1 + 주말·공휴 하루 2).</div></div>`;
+  } else {
+    html += `<div class="card"><h2>이번 달 배정 횟수</h2><table><thead><tr><th>당직자</th><th>평일</th><th>주말·공휴</th><th>합계</th></tr></thead><tbody>`;
+    for(const s of summary){
+      const tag = s.manual ? '<span class="badge">수동</span>' : '';
+      html += `<tr><td style="text-align:left">${s.name}${tag}</td><td>${s.wd}</td><td>${s.we}</td><td><b>${s.wd+s.we}</b></td></tr>`;
+    }
+    html += `</tbody></table></div>`;
   }
-  html += `</tbody></table></div>`;
 
   // 이월
   html += `<div class="card"><h2>다음 달 이월값</h2><table><thead><tr><th>당직자</th><th>평일이월</th><th>주말이월</th></tr></thead><tbody>`;
   for(const s of summary){
     html += `<tr><td style="text-align:left">${s.name}</td><td>${s.nextWd===null?'-':s.nextWd}</td><td>${s.nextWe===null?'-':s.nextWe}</td></tr>`;
   }
-  html += `</tbody></table><div class="hint">수동 인원은 이월 대상이 아닙니다(-). 교체로 줄어든 자동 멤버는 다음 달에 자동 보정됩니다.</div></div>`;
+  html += `</tbody></table><div class="hint">수동 인원은 이월 대상이 아닙니다(-). 교체로 줄어든 자동 멤버는 다음 달에 자동 보정됩니다.${split?' 주말이월은 <b>일·숙직 횟수</b> 기준입니다(하루 = 2).':''}</div></div>`;
   html += `</div>`;
 
   out.innerHTML = html;
 
-  const tsv = ['날짜\t요일\t구분\t당직자',
-    ...eff.map(r=>`${month}/${r.day}\t${KO_DOW[r.dow]}\t${r.type==='we'?(r.isHol?'공휴일':'주말'):'평일'}\t${r.eff||''}`)].join('\n');
+  const gb = r => r.type==='we'?(r.isHol?'공휴일':'주말'):'평일';
+  const tsv = split
+    ? ['날짜\t요일\t구분\t일직\t숙직',
+       ...eff.map(r=>`${month}/${r.day}\t${KO_DOW[r.dow]}\t${gb(r)}\t${r.type==='we'?(r.eff||''):''}\t${r.eff||''}`)].join('\n')
+    : ['날짜\t요일\t구분\t당직자',
+       ...eff.map(r=>`${month}/${r.day}\t${KO_DOW[r.dow]}\t${gb(r)}\t${r.eff||''}`)].join('\n');
   document.getElementById('schedTA').value = tsv;
   document.getElementById('copySched').onclick = () => copyText(tsv, 'copyMsg', 'schedTA');
   document.getElementById('prepNext').onclick = () => prepareNextMonth(rec, summary);
@@ -462,7 +484,7 @@ function renderOutput(rec){
 
   // 최종본(수동수정 반영)과 이월값을 레코드에 명시적으로 기록 후 저장
   rec.finalSchedule = eff.map(r=>({ day:r.day, dow:r.dow, isHol:r.isHol, type:r.type, name:r.eff }));
-  rec.counts    = summary.map(s=>({ name:s.name, wd:s.wd, we:s.we, manual:s.manual }));
+  rec.counts    = summary.map(s=>({ name:s.name, wd:s.wd, we:s.we, total:s.total, manual:s.manual }));
   rec.nextCarry = summary.filter(s=>!s.manual).map(s=>({ name:s.name, wd:s.nextWd, we:s.nextWe }));
   saveMonth(rec);
 }
