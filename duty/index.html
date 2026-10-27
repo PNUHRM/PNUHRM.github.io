@@ -50,7 +50,7 @@
 </head>
 <body>
   <h1>📅 당직 일정 생성기</h1>
-  <div class="sub">자동 균형(평일·주말 분리 + 이월) 후, 원하는 날에 수동 인원(예: 신용범)을 끼워넣으면 원래 담당자가 빠지고 자동 재계산</div>
+  <div class="sub">누적 총 횟수 균형(평일·주말 구분 없이 일직·숙직 각 1회) 후, 원하는 날에 수동 인원(예: 신용범)을 끼워넣거나 일직·숙직을 따로 바꾸면 자동 재계산</div>
 
   <div class="card">
     <h2>1. 기간 · 공휴일 · 수동 인원</h2>
@@ -66,7 +66,7 @@
         <input type="text" id="manual" placeholder="예: 신용범">
       </div>
     </div>
-    <div style="margin-top:10px"><label style="display:flex;align-items:center;gap:6px;font-size:13px"><input type="checkbox" id="autoCarry" checked> 지난달 이월값 자동 적용 (저장된 직전 달에서 이어받음)</label></div>
+    <div style="margin-top:10px"><label style="display:flex;align-items:center;gap:6px;font-size:13px"><input type="checkbox" id="autoCarry" checked> 이월값 자동 계산 (저장된 지난 달까지의 누적 총 횟수에서 편차를 구함)</label></div>
     <div class="hint">신정·3.1절·어린이날·현충일·광복절·개천절·한글날·성탄절은 <b>자동</b> 인식. 음력/대체공휴일은 직접 추가하세요. · <b>수동 배정 인원</b>은 자동 배정에서 제외되고, 생성 후 일정표에서 원하는 날에 직접 넣습니다.</div>
   </div>
 
@@ -74,19 +74,19 @@
     <h2>2. 당직자 (자동 배정)</h2>
     <table class="people-table">
       <thead>
-        <tr><th>이름</th><th>불가일 (예: <code>3, 5, 10-12</code>)</th><th>평일이월</th><th>주말이월</th><th></th></tr>
+        <tr><th>이름</th><th>불가일 (예: <code>3, 5, 10-12</code>)</th><th>이월(누적차)</th><th></th></tr>
       </thead>
       <tbody id="peopleBody"></tbody>
     </table>
     <div class="btnbar"><button class="ghost" id="addPerson">+ 당직자 추가</button></div>
-    <div class="hint">이월값은 보통 0으로 두고, 생성 후 "다음 달 준비"가 자동으로 채웁니다.</div>
+    <div class="hint">이월 = 지난 달까지 누적 총 횟수 − 가장 적게 선 사람의 누적. 자동 계산이 켜져 있으면 일정 생성 때 저장된 기록으로 다시 채웁니다(직접 고치려면 체크 해제).</div>
 
     <details style="margin-top:14px; border-top:1px solid var(--bd); padding-top:12px">
       <summary style="cursor:pointer; font-size:14px; font-weight:600; color:var(--accent)">📥 구글 시트에서 불러오기 (선택)</summary>
       <div style="margin-top:10px">
-        <div class="hint" style="margin-bottom:8px">컬럼 순서: <code>이름 ⟶ 불가일 ⟶ 평일이월 ⟶ 주말이월</code> (이월값 생략 가능). 위 명단을 <b>덮어씁니다.</b></div>
-        <textarea rows="4" id="importTA" placeholder="홍길동	3, 5, 12	0	0
-김철수	10-12	1	0"></textarea>
+        <div class="hint" style="margin-bottom:8px">컬럼 순서: <code>이름 ⟶ 불가일 ⟶ 이월</code> (이월값 생략 가능). 위 명단을 <b>덮어씁니다.</b></div>
+        <textarea rows="4" id="importTA" placeholder="홍길동	3, 5, 12	0
+김철수	10-12	1"></textarea>
         <div class="btnbar"><button id="importPaste">붙여넣기로 채우기</button><span id="importMsg"></span></div>
       </div>
     </details>
@@ -152,14 +152,13 @@ function nextMonth(){
   return {y, m};
 }
 
-function addPersonRow(name="", unavail="", carryWd=0, carryWe=0){
+function addPersonRow(name="", unavail="", carry=0){
   const tb = document.getElementById('peopleBody');
   const tr = document.createElement('tr');
   tr.innerHTML = `
     <td><input type="text" class="p-name" value="${escAttr(name)}" placeholder="이름"></td>
     <td><input type="text" class="p-unavail" value="${escAttr(unavail)}" placeholder="예: 3, 5, 10-12"></td>
-    <td><input type="number" class="p-cwd num" value="${carryWd}" step="1"></td>
-    <td><input type="number" class="p-cwe num" value="${carryWe}" step="1"></td>
+    <td><input type="number" class="p-carry num" value="${carry}" step="1"></td>
     <td><button class="del" title="삭제">✕</button></td>`;
   tr.querySelector('.del').onclick = () => { tr.remove(); savePeople(); };
   tr.querySelectorAll('input').forEach(i => i.addEventListener('change', savePeople));
@@ -190,8 +189,7 @@ function readPeople(){
   return [...document.querySelectorAll('#peopleBody tr')].map(r => ({
     name: r.querySelector('.p-name').value.trim(),
     unavailRaw: r.querySelector('.p-unavail').value,
-    carryWd: parseInt(r.querySelector('.p-cwd').value || '0',10) || 0,
-    carryWe: parseInt(r.querySelector('.p-cwe').value || '0',10) || 0,
+    carry: parseInt(r.querySelector('.p-carry').value || '0',10) || 0,
   })).filter(p => p.name);
 }
 
@@ -200,18 +198,26 @@ function savePeople(){
   const data = [...document.querySelectorAll('#peopleBody tr')].map(r => ({
     name: r.querySelector('.p-name').value,
     unavail: r.querySelector('.p-unavail').value,
-    cwd: r.querySelector('.p-cwd').value,
-    cwe: r.querySelector('.p-cwe').value,
+    carry: r.querySelector('.p-carry').value,
   }));
   localStorage.setItem(LS_PEOPLE, JSON.stringify(data));
   localStorage.setItem(LS_MANUAL, document.getElementById('manual').value);
 }
 function loadPeople(){ try{ return JSON.parse(localStorage.getItem(LS_PEOPLE)) || null; }catch(e){ return null; } }
 
-function getSaved(){ try{ return JSON.parse(localStorage.getItem(LS_SAVED)) || {}; }catch(e){ return {}; } }
-function saveMonth(rec){
-  const all = getSaved();
-  all[`${rec.year}-${String(rec.month).padStart(2,'0')}`] = rec;
+// 저장된 달 기록. 삭제는 지우지 않고 {_deleted, backup}으로 남겨 기기 간 병합 때 되살아나지 않게 한다.
+function getSavedAll(){ try{ return JSON.parse(localStorage.getItem(LS_SAVED)) || {}; }catch(e){ return {}; } }
+function getSaved(){
+  const all = getSavedAll(), out = {};
+  for(const k in all) if(all[k] && !all[k]._deleted) out[k] = all[k];
+  return out;
+}
+function monthKey(y, m){ return `${y}-${String(m).padStart(2,'0')}`; }
+// touch=true: 실제 편집(생성·교체). 보기만 할 때는 updatedAt을 바꾸지 않는다(병합 때 낡은 기기가 이기지 않도록).
+function saveMonth(rec, touch){
+  if(touch) rec.updatedAt = Date.now();
+  const all = getSavedAll();
+  all[monthKey(rec.year, rec.month)] = rec;
   localStorage.setItem(LS_SAVED, JSON.stringify(all));
   renderSavedList();
 }
@@ -227,10 +233,26 @@ function renderSavedList(){
     return `<div class="saved-item"><span class="nm">${r.year}년 ${r.month}월</span>
       <span class="tag">${r.schedule.filter(s=>s.name).length}일${r.weMult>1?' · 일숙직 2인':''}</span>
       <button onclick="viewMonth('${k}')">보기</button>
+      ${r.replaced && r.replaced.length ? `<button onclick="restorePrev('${k}')" title="다시 생성하기 전 일정으로 되돌림">이전본 복원</button>` : ''}
       <button class="del" onclick="deleteMonth('${k}')" title="삭제">✕</button></div>`;
   }).join('');
 }
-function deleteMonth(k){ const all=getSaved(); delete all[k]; localStorage.setItem(LS_SAVED, JSON.stringify(all)); renderSavedList(); }
+function deleteMonth(k){
+  if(!confirm(`${k} 일정을 삭제할까요? (백업 파일 안에는 사본이 남습니다)`)) return;
+  const all=getSavedAll();
+  all[k] = { _deleted:true, updatedAt:Date.now(), backup: all[k] };
+  localStorage.setItem(LS_SAVED, JSON.stringify(all)); renderSavedList(); scheduleAutoSave();
+}
+// 재생성으로 대체된 직전 일정을 되살린다. 지금 일정은 이전본 목록 맨 앞으로 들어간다.
+function restorePrev(k){
+  const all=getSavedAll(); const cur=all[k];
+  if(!cur || !cur.replaced || !cur.replaced.length) return;
+  if(!confirm(`${k}을 다시 생성하기 전 일정으로 되돌릴까요? (지금 일정은 이전본으로 보관)`)) return;
+  const { replaced, ...curBody } = cur;
+  const prev = { ...replaced[0], replaced: [curBody, ...replaced.slice(1)].slice(0,3), updatedAt: Date.now() };
+  all[k] = prev; localStorage.setItem(LS_SAVED, JSON.stringify(all));
+  renderSavedList(); viewMonth(k); scheduleAutoSave();
+}
 function viewMonth(k){ const r=getSaved()[k]; if(!r) return; if(!r.overrides) r.overrides={}; renderOutput(r);
   window.scrollTo({top:document.getElementById('output').offsetTop-20, behavior:'smooth'}); }
 
@@ -250,7 +272,7 @@ function parseImport(text){
     let c=(hasTab?line.split('\t'):parseCSVLine(line)).map(x=>x.trim());
     if(/^(이름|name)$/i.test(c[0])) continue;
     if(!c[0]) continue;
-    rows.push({ name:c[0], unavail:c[1]||'', cwd:parseInt(c[2]||'0',10)||0, cwe:parseInt(c[3]||'0',10)||0 });
+    rows.push({ name:c[0], unavail:c[1]||'', carry:parseInt(c[2]||'0',10)||0 });
   }
   return rows;
 }
@@ -258,30 +280,37 @@ function applyImport(rows){
   const msg=document.getElementById('importMsg');
   if(!rows.length){ msg.innerHTML='<span class="copied" style="color:#b91c1c">읽을 데이터가 없습니다</span>'; return; }
   document.getElementById('peopleBody').innerHTML='';
-  rows.forEach(r=>addPersonRow(r.name, r.unavail, r.cwd, r.cwe));
+  rows.forEach(r=>addPersonRow(r.name, r.unavail, r.carry));
   savePeople();
   msg.innerHTML=`<span class="copied">✓ ${rows.length}명 불러옴</span>`;
 }
 
-// ---- 자동 일정 생성 (4명 균형) ----
+// ---- 자동 일정 생성 (누적 총 횟수 균형) ----
+// 평일·주말 구분 없이 횟수만 본다. 주말·공휴일 하루 = 일직 1 + 숙직 1 = 2회.
+const WE_MULT = 2;
+
 function generate(){
   const year = parseInt(document.getElementById('year').value,10);
   const month = parseInt(document.getElementById('month').value,10);
   const out = document.getElementById('output');
-  out.innerHTML='';
   if(!year || !month || month<1 || month>12){ out.innerHTML=warn('연도/월을 올바르게 입력하세요.'); return; }
-  // ── 지난달 이월 자동 적용: 저장된 직전 달의 이월값을 시작 carry로 이어받음 ──
+  const key = monthKey(year, month);
+  const existing = getSaved()[key];
+  if(existing && !confirm(`${year}년 ${month}월 일정이 이미 저장되어 있습니다.\n새로 생성하면 지금 일정(수동 교체 포함)을 대체합니다.\n지금 일정은 '이전본 복원'으로 되돌릴 수 있게 보관합니다. 계속할까요?`)) return;
+  out.innerHTML='';
+
+  // ── 이월 자동 계산: 저장된 지난 달까지의 누적 총 횟수에서 최솟값을 뺀 편차 ──
   let carryInfo = '';
   if(document.getElementById('autoCarry').checked){
-    const pk = prevKey(year, month);
-    const saved = getSaved();
-    if(saved[pk]){
-      const src = computeNextCarry(saved[pk]);
+    const { tot, months } = cumulativeTotals(key, false);
+    if(months.length){
+      const names = [...document.querySelectorAll('#peopleBody .p-name')].map(i=>i.value.trim()).filter(Boolean);
+      const carry = carryFrom(tot, names);
       document.querySelectorAll('#peopleBody tr').forEach(tr=>{
         const nm = tr.querySelector('.p-name').value.trim();
-        if(src[nm]){ tr.querySelector('.p-cwd').value = src[nm].wd; tr.querySelector('.p-cwe').value = src[nm].we; }
+        if(nm in carry) tr.querySelector('.p-carry').value = carry[nm];
       });
-      carryInfo = `지난달(${pk}) 이월값을 자동으로 이어받았습니다.`;
+      carryInfo = `${monthLabel(months[0])}~${monthLabel(months[months.length-1])} 누적 총 횟수로 이월을 계산했습니다 (${names.map(n=>`${n} ${tot[n]||0}`).join(' · ')}).`;
     }
   }
 
@@ -300,7 +329,7 @@ function generate(){
   const state = people.map((p,i)=>{
     const {set, bad} = parseDays(p.unavailRaw, daysInMonth);
     if(bad.length) warnings.push(`${p.name}: 무시된 불가일 → ${bad.join(', ')}`);
-    return { name:p.name, idx:i, unavail:set, carryWd:p.carryWd, carryWe:p.carryWe, wd:0, we:0, last:-99 };
+    return { name:p.name, idx:i, unavail:set, carry:p.carry, load:0, we:0, last:-99 };
   });
 
   const schedule = [];
@@ -318,88 +347,141 @@ function generate(){
         const f = pool.filter(s => s.idx !== prev);
         if(f.length) pool = f;
       }
-      pool.sort((a,b)=>{
-        // 주말이월은 횟수 단위(일숙직 2회)라 이번 달 주말 일수도 2배로 비교
-        const ca = type==='we' ? (a.carryWe+a.we*2) : (a.carryWd+a.wd);
-        const cb = type==='we' ? (b.carryWe+b.we*2) : (b.carryWd+b.wd);
-        return ca - cb || a.last - b.last || a.idx - b.idx;
-      });
+      pool.sort((a,b)=>
+        (a.carry+a.load) - (b.carry+b.load)
+        || (type==='we' ? a.we - b.we : 0)      // 같은 횟수면 주말을 덜 선 사람
+        || a.last - b.last || a.idx - b.idx);
       chosen = pool[0];
-      if(type==='we') chosen.we++; else chosen.wd++;
+      chosen.load += type==='we' ? WE_MULT : 1;
+      if(type==='we') chosen.we++;
       chosen.last = day; prev = chosen.idx;
     }
     schedule.push({day, dow, isHol, type, name: chosen?chosen.name:null});
   }
+  rebalance(schedule, state);
 
   const rec = {
     year, month, schedule, warnings, autoHolidayList, carryInfo,
-    people: people.map(p=>({name:p.name, carryWd:p.carryWd, carryWe:p.carryWe})),
+    people: people.map(p=>({name:p.name, carry:p.carry, unavail:p.unavailRaw})),
     manual: parseNames(document.getElementById('manual').value),
-    overrides: {},   // day -> 이름 (수동 교체)
-    weMult: 2,       // 주말·공휴일 = 일직+숙직 2회 (같은 사람). 이 필드 없는 옛 기록은 1회로 집계
+    overrides: {},     // day -> 이름 (숙직 교체. 주말·공휴일은 일직도 따라 바뀜)
+    dayOverrides: {},  // day -> 이름 (주말·공휴일 일직만 따로 교체)
+    weMult: WE_MULT,   // 주말·공휴일 = 일직+숙직 2회. 이 필드 없는 옛 기록(7~9월)은 1회로 집계
+    balance: 'total',  // 평일·주말 구분 없이 누적 총 횟수로 균형
   };
+  if(existing){
+    const { replaced, ...body } = existing;
+    rec.replaced = [body, ...(replaced||[])].slice(0,3);
+  }
   savePeople();
-  renderOutput(rec);   // renderOutput 내부에서 최종본/이월값 계산 후 저장
-  scheduleAutoSave();  // 토큰 있으면 자동 커밋
+  renderOutput(rec, true);   // renderOutput 내부에서 최종본 계산 후 저장
+  scheduleAutoSave();        // 토큰 있으면 자동 커밋
+}
+
+// 탐욕 배정 뒤 남는 편차를 옮기기·맞바꾸기로 줄인다 (이월+이번 달 횟수의 제곱합 최소화).
+// 불가일은 지키고, 옮긴 날이 앞뒤 날과 같은 사람이 되지 않게 한다.
+function rebalance(schedule, state){
+  const byName = Object.fromEntries(state.map(s=>[s.name, s]));
+  const unit = r => r.type==='we' ? WE_MULT : 1;
+  const cost = () => {
+    const L = {}; state.forEach(s=>L[s.name]=s.carry);
+    schedule.forEach(r=>{ if(r.name) L[r.name] += unit(r); });
+    return state.reduce((a,s)=>a + L[s.name]*L[s.name], 0);
+  };
+  const ok = i => {
+    const n = schedule[i].name;
+    if(byName[n].unavail.has(schedule[i].day)) return false;
+    return !((i>0 && schedule[i-1].name===n) || (i<schedule.length-1 && schedule[i+1].name===n));
+  };
+  let c = cost();
+  for(let guard=0; guard<100; guard++){
+    let improved = false;
+    for(let i=0; i<schedule.length; i++){
+      const r = schedule[i]; if(!r.name) continue;
+      const old = r.name;
+      for(const s of state){
+        if(s.name===old) continue;
+        r.name = s.name;
+        if(ok(i)){ const c2=cost(); if(c2<c){ c=c2; improved=true; break; } }
+        r.name = old;
+      }
+    }
+    for(let i=0; i<schedule.length; i++) for(let j=i+1; j<schedule.length; j++){
+      const a = schedule[i], b = schedule[j];
+      if(!a.name || !b.name || a.name===b.name || unit(a)===unit(b)) continue;
+      [a.name, b.name] = [b.name, a.name];
+      if(ok(i) && ok(j)){ const c2=cost(); if(c2<c){ c=c2; improved=true; continue; } }
+      [a.name, b.name] = [b.name, a.name];
+    }
+    if(!improved) break;
+  }
 }
 
 function warn(msg){ return `<div class="warnbox">⚠️ ${msg}</div>`; }
+function monthLabel(k){ const [y,m]=k.split('-'); return `${y.slice(2)}.${+m}월`; }
 
 // ---- 유효 일정/집계 계산 (자동 + 수동교체 반영) ----
+// 횟수: 평일 숙직 1, 주말·공휴 숙직 1 + 일직 1 (weMult 없는 옛 기록은 주말 하루 1회)
 function computeEffective(rec){
   const autoNames = rec.people.map(p=>p.name);
   const manualNames = (rec.manual||[]).filter(n=>!autoNames.includes(n));
-  const allNames = [...autoNames, ...manualNames];
+  const weMult = rec.weMult || 1;
+  const split = weMult > 1;
+  const ov = rec.overrides || {}, dov = rec.dayOverrides || {};
 
   const eff = rec.schedule.map(r=>{
-    const ov = rec.overrides ? rec.overrides[r.day] : null;
-    return { ...r, base:r.name, eff: (ov!=null ? ov : r.name) };
+    const night = ov[r.day]!=null ? ov[r.day] : r.name;
+    const isSplit = split && r.type==='we';
+    const dayOvr = isSplit && dov[r.day]!=null;
+    return { ...r, base:r.name, eff:night, effDay: isSplit ? (dayOvr ? dov[r.day] : night) : null, dayOvr };
   });
 
-  const cnt = {}; allNames.forEach(n=>cnt[n]={wd:0,we:0});
-  eff.forEach(r=>{ if(r.eff && cnt[r.eff]){ if(r.type==='we') cnt[r.eff].we++; else cnt[r.eff].wd++; } });
-
-  // 이월: 자동 멤버만 정규화
-  const carryMap = {}; rec.people.forEach(p=>carryMap[p.name]={cwd:p.carryWd, cwe:p.carryWe});
-  const finalsWd = autoNames.map(n=>carryMap[n].cwd + cnt[n].wd);
-  // 주말·공휴일은 weMult배(일숙직 2회)로 세고, 주말이월도 그 횟수 단위로 넘긴다
-  const weMult = rec.weMult || 1;
-  const finalsWe = autoNames.map(n=>carryMap[n].cwe + cnt[n].we * weMult);
-  const minWd = finalsWd.length ? Math.min(...finalsWd) : 0;
-  const minWe = finalsWe.length ? Math.min(...finalsWe) : 0;
-
-  const summary = allNames.map((n,i)=>{
-    const isAuto = i < autoNames.length;
-    return {
-      name:n, manual:!isAuto, wd:cnt[n].wd, we:cnt[n].we,
-      weDuty: cnt[n].we * weMult, total: cnt[n].wd + cnt[n].we * weMult,
-      nextWd: isAuto ? (carryMap[n].cwd + cnt[n].wd) - minWd : null,
-      nextWe: isAuto ? (carryMap[n].cwe + cnt[n].we * weMult) - minWe : null,
-    };
+  const cnt = {};
+  const bump = (n, f) => {
+    if(!n) return;
+    if(!cnt[n]){ cnt[n]={wd:0,we:0,day:0}; if(!autoNames.includes(n) && !manualNames.includes(n)) manualNames.push(n); }
+    cnt[n][f]++;
+  };
+  [...autoNames, ...manualNames].forEach(n=>cnt[n]={wd:0,we:0,day:0});
+  eff.forEach(r=>{
+    if(r.type==='we'){ bump(r.eff,'we'); if(r.effDay!=null) bump(r.effDay,'day'); }
+    else bump(r.eff,'wd');
   });
-  return { eff, summary, allNames, autoNames, manualNames, weMult };
+  const allNames = [...autoNames, ...manualNames];
+  const summary = allNames.map(n=>({
+    name:n, manual:!autoNames.includes(n), wd:cnt[n].wd, we:cnt[n].we, day:cnt[n].day,
+    total: cnt[n].wd + cnt[n].we + cnt[n].day,
+  }));
+  return { eff, summary, allNames, autoNames, manualNames, weMult, split };
 }
 
-// 직전 달 키 (연/월 -1)
-function prevKey(year, month){ let y=year, m=month-1; if(m<1){ m=12; y-=1; } return `${y}-${String(m).padStart(2,'0')}`; }
-// 저장된 레코드의 "다음 달 이월값" 산출 (자동 멤버만)
-function computeNextCarry(rec){
-  const { summary } = computeEffective(rec);
-  const map = {};
-  summary.forEach(s=>{ if(!s.manual) map[s.name] = { wd:s.nextWd, we:s.nextWe }; });
-  return map;
+// key 이전(inclusive면 key 포함) 저장된 달들의 사람별 누적 총 횟수
+function cumulativeTotals(key, inclusive){
+  const all = getSaved(), tot = {}, months = [];
+  Object.keys(all).sort().forEach(k=>{
+    if(k > key || (!inclusive && k === key)) return;
+    months.push(k);
+    computeEffective(all[k]).summary.forEach(s=>{ tot[s.name] = (tot[s.name]||0) + s.total; });
+  });
+  return { tot, months };
+}
+// 누적 편차 = 누적 − 대상자 중 최솟값
+function carryFrom(tot, names){
+  const v = names.map(n=>tot[n]||0);
+  const mn = v.length ? Math.min(...v) : 0;
+  const o = {}; names.forEach((n,i)=>o[n]=v[i]-mn); return o;
 }
 
-function renderOutput(rec){
+function renderOutput(rec, touch){
   if(!rec.overrides) rec.overrides={};
+  if(!rec.dayOverrides) rec.dayOverrides={};
   const {year, month, warnings, autoHolidayList} = rec;
-  const { eff, summary, allNames, manualNames, weMult } = computeEffective(rec);
-  const split = weMult > 1;   // 주말·공휴일을 일직/숙직 두 칸으로 표기
+  const { eff, summary, allNames, autoNames, manualNames, split } = computeEffective(rec);
   const out = document.getElementById('output');
   let html='';
 
   const autoStr = (autoHolidayList||[]).map(d=>`${month}/${d}`).join(', ') || '없음';
-  html += `<div class="okbox">자동 인식 공휴일: <b>${autoStr}</b> · 주말(토·일) 자동 처리. 음력/대체공휴일은 "추가 공휴일"에 넣으세요.<br>일정표의 <b>당직자 칸 드롭다운</b>에서 수동 인원(${manualNames.join(', ')||'없음'})을 넣으면 원래 담당자가 빠지고 자동 재계산됩니다.</div>`;
+  html += `<div class="okbox">자동 인식 공휴일: <b>${autoStr}</b> · 주말(토·일) 자동 처리. 음력/대체공휴일은 "추가 공휴일"에 넣으세요.<br>일정표 드롭다운에서 수동 인원(${manualNames.join(', ')||'없음'})이나 다른 당직자로 바꾸면 자동 재계산됩니다.${split?' 주말·공휴일은 <b>일직</b> 칸을 따로 바꿀 수 있습니다.':''}</div>`;
   if(rec.carryInfo) html += `<div class="okbox" style="background:#eef4ff;border-color:#c7d7fe;color:#1e40af">↪️ ${rec.carryInfo}</div>`;
 
   if(warnings && warnings.length){
@@ -407,19 +489,24 @@ function renderOutput(rec){
   }
 
   // 일정표 (드롭다운 편집)
+  const nameOpts = sel => allNames.map(n=>`<option value="${escAttr(n)}" ${sel===n?'selected':''}>${n}</option>`).join('');
   html += `<div class="card"><h2>${year}년 ${month}월 당직 일정</h2>`;
   html += split
-    ? `<table><thead><tr><th>날짜</th><th>요일</th><th>구분</th><th>일직</th><th>숙직 (드롭다운으로 교체, 일직도 같이 바뀜)</th></tr></thead><tbody>`
+    ? `<table><thead><tr><th>날짜</th><th>요일</th><th>구분</th><th>일직 (따로 교체 가능)</th><th>숙직 (교체하면 일직도 같이 바뀜)</th></tr></thead><tbody>`
     : `<table><thead><tr><th>날짜</th><th>요일</th><th>구분</th><th>당직자 (드롭다운으로 교체)</th></tr></thead><tbody>`;
   for(const r of eff){
     const rowcls = r.type==='we' ? 'we' : (r.dow===6?'sat':'');
     const gubun = r.type==='we' ? (r.isHol?'공휴일':'주말') : '평일';
     const overridden = (r.eff !== r.base);
-    const opts = ['<option value="__auto__">'+ (r.base||'공석') +' (자동)</option>']
-      .concat(allNames.map(n=>`<option value="${escAttr(n)}" ${overridden && r.eff===n ? 'selected':''}>${n}</option>`))
-      .join('');
+    const opts = `<option value="__auto__">${r.base||'공석'} (자동)</option>` + nameOpts(overridden ? r.eff : null);
     const struck = overridden && r.base ? `<span class="struck">${r.base}</span>` : '';
-    const dayCell = split ? `<td>${r.type==='we' ? (r.eff||'') : ''}</td>` : '';
+    let dayCell = '';
+    if(split){
+      if(r.type==='we'){
+        const dopts = `<option value="__same__">${r.eff||'공석'} (숙직과 같음)</option>` + nameOpts(r.dayOvr ? r.effDay : null);
+        dayCell = `<td style="text-align:left" class="${r.dayOvr?'ovr-on':''}"><select class="ovr-sel dovr" data-day="${r.day}">${dopts}</select></td>`;
+      } else dayCell = '<td></td>';
+    }
     html += `<tr class="${rowcls} ${overridden?'ovr-on':''}"><td>${month}/${r.day}</td><td>${KO_DOW[r.dow]}</td><td>${gubun}</td>${dayCell}
       <td style="text-align:left"><select class="ovr-sel ovr" data-day="${r.day}">${opts}</select>${struck}</td></tr>`;
   }
@@ -434,28 +521,36 @@ function renderOutput(rec){
 
   // 요약
   html += `<div class="grid2">`;
-  if(split){
-    html += `<div class="card"><h2>이번 달 배정 횟수</h2><table><thead><tr><th>당직자</th><th>평일 숙직</th><th>주말·공휴 일수</th><th>주말·공휴 일+숙직</th><th>합계 (횟수)</th></tr></thead><tbody>`;
-    for(const s of summary){
-      const tag = s.manual ? '<span class="badge">수동</span>' : '';
-      html += `<tr><td style="text-align:left">${s.name}${tag}</td><td>${s.wd}</td><td>${s.we}일</td><td>${s.weDuty}</td><td><b>${s.total}</b></td></tr>`;
-    }
-    html += `</tbody></table><div class="hint">주말·공휴일은 일직+숙직 2회로 셉니다 (평일 숙직 1 + 주말·공휴 하루 2).</div></div>`;
-  } else {
-    html += `<div class="card"><h2>이번 달 배정 횟수</h2><table><thead><tr><th>당직자</th><th>평일</th><th>주말·공휴</th><th>합계</th></tr></thead><tbody>`;
-    for(const s of summary){
-      const tag = s.manual ? '<span class="badge">수동</span>' : '';
-      html += `<tr><td style="text-align:left">${s.name}${tag}</td><td>${s.wd}</td><td>${s.we}</td><td><b>${s.wd+s.we}</b></td></tr>`;
-    }
-    html += `</tbody></table></div>`;
-  }
-
-  // 이월
-  html += `<div class="card"><h2>다음 달 이월값</h2><table><thead><tr><th>당직자</th><th>평일이월</th><th>주말이월</th></tr></thead><tbody>`;
+  html += split
+    ? `<div class="card"><h2>이번 달 배정 횟수</h2><table><thead><tr><th>당직자</th><th>평일 숙직</th><th>주말·공휴 숙직</th><th>주말·공휴 일직</th><th>합계 (횟수)</th></tr></thead><tbody>`
+    : `<div class="card"><h2>이번 달 배정 횟수</h2><table><thead><tr><th>당직자</th><th>평일</th><th>주말·공휴</th><th>합계</th></tr></thead><tbody>`;
   for(const s of summary){
-    html += `<tr><td style="text-align:left">${s.name}</td><td>${s.nextWd===null?'-':s.nextWd}</td><td>${s.nextWe===null?'-':s.nextWe}</td></tr>`;
+    const tag = s.manual ? '<span class="badge">수동</span>' : '';
+    html += split
+      ? `<tr><td style="text-align:left">${s.name}${tag}</td><td>${s.wd}</td><td>${s.we}</td><td>${s.day}</td><td><b>${s.total}</b></td></tr>`
+      : `<tr><td style="text-align:left">${s.name}${tag}</td><td>${s.wd}</td><td>${s.we}</td><td><b>${s.total}</b></td></tr>`;
   }
-  html += `</tbody></table><div class="hint">수동 인원은 이월 대상이 아닙니다(-). 교체로 줄어든 자동 멤버는 다음 달에 자동 보정됩니다.${split?' 주말이월은 <b>일·숙직 횟수</b> 기준입니다(하루 = 2).':''}</div></div>`;
+  html += `</tbody></table><div class="hint">${split ? '일직·숙직 각 1회로 셉니다 (평일 숙직 1 + 주말·공휴 하루 일직 1 + 숙직 1).' : '이 달은 옛 방식 기록이라 주말·공휴 하루를 1회로 셉니다.'}</div></div>`;
+
+  // 누적 (저장된 첫 달 ~ 이번 달). 이번 달은 화면의 최신 상태로 계산
+  const key = monthKey(year, month);
+  const { tot:prevTot, months } = cumulativeTotals(key, false);
+  const cum = { ...prevTot };
+  summary.forEach(s=>{ cum[s.name] = (cum[s.name]||0) + s.total; });
+  const next = carryFrom(cum, autoNames);
+  const autoCum = autoNames.map(n=>cum[n]);
+  const gap = autoCum.length ? Math.max(...autoCum) - Math.min(...autoCum) : 0;
+  const range = `${monthLabel(months[0] || key)}~${monthLabel(key)}`;
+  html += `<div class="card"><h2>누적 횟수 (${range})</h2>`;
+  html += gap === 0
+    ? `<div class="okbox">누적 편차 0 · 자동 당직자 모두 ${autoCum[0] ?? 0}회</div>`
+    : `<div class="warnbox">누적 편차 ${gap}회 (최대 ${Math.max(...autoCum)} · 최소 ${Math.min(...autoCum)}). 다음 달 생성 때 아래 이월만큼 덜 배정됩니다.</div>`;
+  html += `<table><thead><tr><th>당직자</th><th>지난 달까지</th><th>이번 달</th><th>누적</th><th>다음 달 이월</th></tr></thead><tbody>`;
+  for(const s of summary){
+    const tag = s.manual ? '<span class="badge">수동</span>' : '';
+    html += `<tr><td style="text-align:left">${s.name}${tag}</td><td>${prevTot[s.name]||0}</td><td>${s.total}</td><td><b>${cum[s.name]}</b></td><td>${s.manual?'-':next[s.name]}</td></tr>`;
+  }
+  html += `</tbody></table><div class="hint">평일·주말 구분 없이 일직·숙직 횟수 합계로 셉니다(7~9월 옛 기록은 주말 하루 1회). 수동 인원은 이월 대상이 아닙니다(-).</div></div>`;
   html += `</div>`;
 
   out.innerHTML = html;
@@ -463,13 +558,15 @@ function renderOutput(rec){
   const gb = r => r.type==='we'?(r.isHol?'공휴일':'주말'):'평일';
   const tsv = split
     ? ['날짜\t요일\t구분\t일직\t숙직',
-       ...eff.map(r=>`${month}/${r.day}\t${KO_DOW[r.dow]}\t${gb(r)}\t${r.type==='we'?(r.eff||''):''}\t${r.eff||''}`)].join('\n')
+       ...eff.map(r=>`${month}/${r.day}\t${KO_DOW[r.dow]}\t${gb(r)}\t${r.effDay||''}\t${r.eff||''}`)].join('\n')
     : ['날짜\t요일\t구분\t당직자',
        ...eff.map(r=>`${month}/${r.day}\t${KO_DOW[r.dow]}\t${gb(r)}\t${r.eff||''}`)].join('\n');
   document.getElementById('schedTA').value = tsv;
   document.getElementById('copySched').onclick = () => copyText(tsv, 'copyMsg', 'schedTA');
-  document.getElementById('prepNext').onclick = () => prepareNextMonth(rec, summary);
-  document.getElementById('clearOvr').onclick = () => { rec.overrides={}; renderOutput(rec); scheduleAutoSave(); };
+  document.getElementById('prepNext').onclick = () => prepareNextMonth(rec, next);
+  document.getElementById('clearOvr').onclick = () => {
+    if(!confirm('이 달의 수동 교체(숙직·일직)를 모두 지울까요?')) return;
+    rec.overrides={}; rec.dayOverrides={}; renderOutput(rec, true); scheduleAutoSave(); };
 
   // 드롭다운 교체 핸들러
   out.querySelectorAll('.ovr').forEach(sel=>{
@@ -477,16 +574,25 @@ function renderOutput(rec){
       const day = +sel.dataset.day;
       if(sel.value === '__auto__') delete rec.overrides[day];
       else rec.overrides[day] = sel.value;
-      renderOutput(rec);   // 내부에서 저장됨
+      renderOutput(rec, true);   // 내부에서 저장됨
+      scheduleAutoSave();
+    };
+  });
+  out.querySelectorAll('.dovr').forEach(sel=>{
+    sel.onchange = () => {
+      const day = +sel.dataset.day;
+      if(sel.value === '__same__') delete rec.dayOverrides[day];
+      else rec.dayOverrides[day] = sel.value;
+      renderOutput(rec, true);
       scheduleAutoSave();
     };
   });
 
   // 최종본(수동수정 반영)과 이월값을 레코드에 명시적으로 기록 후 저장
-  rec.finalSchedule = eff.map(r=>({ day:r.day, dow:r.dow, isHol:r.isHol, type:r.type, name:r.eff }));
-  rec.counts    = summary.map(s=>({ name:s.name, wd:s.wd, we:s.we, total:s.total, manual:s.manual }));
-  rec.nextCarry = summary.filter(s=>!s.manual).map(s=>({ name:s.name, wd:s.nextWd, we:s.nextWe }));
-  saveMonth(rec);
+  rec.finalSchedule = eff.map(r=>({ day:r.day, dow:r.dow, isHol:r.isHol, type:r.type, name:r.eff, dayName:r.effDay }));
+  rec.counts    = summary.map(s=>({ name:s.name, wd:s.wd, we:s.we, day:s.day, total:s.total, manual:s.manual }));
+  rec.nextCarry = autoNames.map(n=>({ name:n, carry:next[n], cum:cum[n] }));
+  saveMonth(rec, touch);
 }
 
 function copyText(text, msgId, taId){
@@ -498,18 +604,14 @@ function copyText(text, msgId, taId){
   else { fail(); }
 }
 
-function prepareNextMonth(rec, summary){
-  const wdByName={}, weByName={};
-  summary.forEach(s=>{ if(!s.manual){ wdByName[s.name]=s.nextWd; weByName[s.name]=s.nextWe; } });
+function prepareNextMonth(rec, next){
   document.querySelectorAll('#peopleBody tr').forEach(tr=>{
     const name=tr.querySelector('.p-name').value.trim();
     tr.querySelector('.p-unavail').value='';
-    if(name in wdByName) tr.querySelector('.p-cwd').value=wdByName[name];
-    if(name in weByName) tr.querySelector('.p-cwe').value=weByName[name];
+    if(name in next) tr.querySelector('.p-carry').value=next[name];
   });
   document.getElementById('addHoliday').value='';
-  let y=parseInt(document.getElementById('year').value,10);
-  let m=parseInt(document.getElementById('month').value,10)+1;
+  let y=rec.year, m=rec.month+1;
   if(m>12){ m=1; y+=1; }
   document.getElementById('year').value=y; document.getElementById('month').value=m;
   savePeople();
@@ -522,7 +624,7 @@ function prepareNextMonth(rec, summary){
 document.getElementById('addPerson').onclick = () => addPersonRow();
 document.getElementById('generate').onclick = generate;
 document.getElementById('resetCarry').onclick = () => {
-  document.querySelectorAll('.p-cwd,.p-cwe').forEach(i=>i.value=0); savePeople(); };
+  document.querySelectorAll('.p-carry').forEach(i=>i.value=0); savePeople(); };
 document.getElementById('year').addEventListener('change', savePeople);
 document.getElementById('month').addEventListener('change', savePeople);
 document.getElementById('addHoliday').addEventListener('change', savePeople);
@@ -534,14 +636,25 @@ function backupData(){ return { _type:'duty-backup', v:3,
   people: localStorage.getItem(LS_PEOPLE),
   manual: localStorage.getItem(LS_MANUAL),
   saved: localStorage.getItem(LS_SAVED) }; }
+// 달별 병합: updatedAt이 더 최신인 쪽이 이긴다. 같으면(옛 기록은 둘 다 0) preferInc 쪽.
+// 한쪽에만 있는 달은 항상 남는다 → 낡은 기기가 저장해도 다른 달이 사라지지 않는다.
+function mergeSaved(base, inc, preferInc){
+  const out = { ...base };
+  for(const k in inc){
+    const a = base[k], b = inc[k];
+    if(!a){ out[k] = b; continue; }
+    const ta = a.updatedAt || 0, tb = b.updatedAt || 0;
+    if(tb > ta || (tb === ta && preferInc)) out[k] = b;
+  }
+  return out;
+}
 function applyBackupObject(d){
   if(!d || d._type!=='duty-backup') return false;
   if(d.people != null) localStorage.setItem(LS_PEOPLE, d.people);
   if(d.manual != null) localStorage.setItem(LS_MANUAL, d.manual);
   if(d.saved != null){
-    const cur = getSaved();
     const inc = JSON.parse(d.saved || '{}');
-    localStorage.setItem(LS_SAVED, JSON.stringify({ ...cur, ...inc }));  // 병합(같은 달은 덮어씀)
+    localStorage.setItem(LS_SAVED, JSON.stringify(mergeSaved(getSavedAll(), inc, true)));
   }
   return true;
 }
@@ -642,20 +755,36 @@ async function ghSave(silent){
   if(document.getElementById('ghRemember').checked) localStorage.setItem(LS_TOKEN, token);
   ghMsg(silent?'자동 저장 중…':'저장 중…');
   try{
-    // 덮어쓰려면 현재 sha가 필요하다. raw 우회로는 sha를 못 주므로 API로만 읽는다.
-    let sha = null;
-    const cur = await ghTry(GH_API, { ...ACC, Authorization:`Bearer ${token}` });
-    if(cur.ok){ sha = (await cur.json()).sha; }
-    else if(cur.status !== 404){
-      throw new Error(`토큰으로 저장소를 못 읽습니다 (${cur._err ? '차단' : cur.status}). 새 토큰이 필요합니다`);
+    // 다른 기기가 그 사이 저장했으면(409) 다시 읽어 병합한 뒤 한 번 더 시도한다.
+    for(let attempt=0; ; attempt++){
+      // 덮어쓰려면 현재 sha가 필요하다. raw 우회로는 sha를 못 주므로 API로만 읽는다.
+      let sha = null;
+      const cur = await ghTry(GH_API, { ...ACC, Authorization:`Bearer ${token}` });
+      if(cur.ok){
+        const j = await cur.json(); sha = j.sha;
+        // 원격에만 있는 달·원격이 더 최신인 달을 먼저 이 기기로 합친다 (원격 기록 유실 방지)
+        try{
+          const remote = JSON.parse(decodeURIComponent(escape(atob((j.content||'').replace(/\n/g,'')))));
+          if(remote && remote._type==='duty-backup' && remote.saved){
+            const merged = mergeSaved(JSON.parse(remote.saved), getSavedAll(), true);
+            localStorage.setItem(LS_SAVED, JSON.stringify(merged));
+            renderSavedList();
+          }
+        }catch(e){ throw new Error('원격 백업을 읽지 못해 저장을 멈췄습니다 (덮어쓰기 방지): '+e.message); }
+      }
+      else if(cur.status !== 404){
+        throw new Error(`토큰으로 저장소를 못 읽습니다 (${cur._err ? '차단' : cur.status}). 새 토큰이 필요합니다`);
+      }
+      const content = btoa(unescape(encodeURIComponent(JSON.stringify(backupData()))));
+      const body = { message:'duty backup '+new Date().toISOString(), content };
+      if(sha) body.sha = sha;
+      const r = await fetch(GH_API, { method:'PUT',
+        headers:{ Authorization:`Bearer ${token}`, 'Accept':'application/vnd.github+json', 'Content-Type':'application/json' },
+        body: JSON.stringify(body) });
+      if(r.status === 409 && attempt < 1) continue;
+      if(!r.ok){ const t=await r.text(); throw new Error(r.status+' '+t.slice(0,140)); }
+      break;
     }
-    const content = btoa(unescape(encodeURIComponent(JSON.stringify(backupData()))));
-    const body = { message:'duty backup '+new Date().toISOString(), content };
-    if(sha) body.sha = sha;
-    const r = await fetch(GH_API, { method:'PUT',
-      headers:{ Authorization:`Bearer ${token}`, 'Accept':'application/vnd.github+json', 'Content-Type':'application/json' },
-      body: JSON.stringify(body) });
-    if(!r.ok){ const t=await r.text(); throw new Error(r.status+' '+t.slice(0,140)); }
     ghMsg(silent?'✓ 자동 저장됨':'✓ GitHub에 저장됨');
   }catch(e){ ghMsg('저장 실패: '+e.message, true); }
 }
@@ -683,7 +812,7 @@ document.getElementById('ghAutosave').onchange = e => localStorage.setItem('duty
   document.getElementById('ghAutosave').checked = (asPref === null ? true : asPref === '1');
   const saved=loadPeople();
   if(saved && saved.length){
-    saved.forEach(p=>addPersonRow(p.name, p.unavail, p.cwd||0, p.cwe||0));
+    saved.forEach(p=>addPersonRow(p.name, p.unavail, p.carry||0));   // 옛 평일/주말 이월(cwd/cwe)은 버리고 누적으로 다시 계산
   } else {
     for(let i=0;i<4;i++) addPersonRow();
   }
